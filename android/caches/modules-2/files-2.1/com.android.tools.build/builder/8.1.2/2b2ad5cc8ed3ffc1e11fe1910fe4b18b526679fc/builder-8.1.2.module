@@ -1,0 +1,299 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.android.tools.build",
+    "module": "builder",
+    "version": "8.1.2",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "com.android.tools.build",
+          "module": "manifest-merger",
+          "version": {
+            "requires": "31.1.2"
+          }
+        },
+        {
+          "group": "com.android",
+          "module": "zipflinger",
+          "version": {
+            "requires": "8.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools.build",
+          "module": "apksig",
+          "version": {
+            "requires": "8.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools.build",
+          "module": "apkzlib",
+          "version": {
+            "requires": "8.1.2"
+          }
+        },
+        {
+          "group": "com.squareup",
+          "module": "javawriter",
+          "version": {
+            "requires": "2.5.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "builder-8.1.2.jar",
+          "url": "builder-8.1.2.jar",
+          "size": 11856988,
+          "sha512": "d47a4cd41022a3b05ee50f5f0f57a6b420b9335988ab05d8a211345de8de88463438fed834f343e9276e589fa2bef023345667c9236de2e6fad3f82484ba80e5",
+          "sha256": "b0b06da142fcad5c6ef624f737d5ca35d0f59ca30b022a21f7c4aa66acc0033e",
+          "sha1": "da67ad27a7073e74f7c60803c24d9487d2b8ce43",
+          "md5": "7c6c029612a7209b308ce581d7bf7ec0"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "com.android.tools.build",
+          "module": "builder-model",
+          "version": {
+            "requires": "8.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools.build",
+          "module": "builder-test-api",
+          "version": {
+            "requires": "8.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools",
+          "module": "sdklib",
+          "version": {
+            "requires": "31.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools",
+          "module": "sdk-common",
+          "version": {
+            "requires": "31.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools",
+          "module": "common",
+          "version": {
+            "requires": "31.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools.ddms",
+          "module": "ddmlib",
+          "version": {
+            "requires": "31.1.2"
+          }
+        },
+        {
+          "group": "com.android",
+          "module": "signflinger",
+          "version": {
+            "requires": "8.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools.analytics-library",
+          "module": "protos",
+          "version": {
+            "requires": "31.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools.analytics-library",
+          "module": "tracker",
+          "version": {
+            "requires": "31.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools.layoutlib",
+          "module": "layoutlib-api",
+          "version": {
+            "requires": "31.1.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.8.20-RC2"
+          }
+        },
+        {
+          "group": "org.bouncycastle",
+          "module": "bcpkix-jdk15on",
+          "version": {
+            "requires": "1.67"
+          }
+        },
+        {
+          "group": "commons-codec",
+          "module": "commons-codec",
+          "version": {
+            "requires": "1.10"
+          }
+        },
+        {
+          "group": "org.bouncycastle",
+          "module": "bcprov-jdk15on",
+          "version": {
+            "requires": "1.67"
+          }
+        },
+        {
+          "group": "javax.inject",
+          "module": "javax.inject",
+          "version": {
+            "requires": "1"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-commons",
+          "version": {
+            "requires": "9.2"
+          }
+        },
+        {
+          "group": "com.android.tools.build",
+          "module": "manifest-merger",
+          "version": {
+            "requires": "31.1.2"
+          }
+        },
+        {
+          "group": "com.android",
+          "module": "zipflinger",
+          "version": {
+            "requires": "8.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools.build",
+          "module": "apksig",
+          "version": {
+            "requires": "8.1.2"
+          }
+        },
+        {
+          "group": "com.android.tools.build",
+          "module": "apkzlib",
+          "version": {
+            "requires": "8.1.2"
+          }
+        },
+        {
+          "group": "com.squareup",
+          "module": "javawriter",
+          "version": {
+            "requires": "2.5.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "builder-8.1.2.jar",
+          "url": "builder-8.1.2.jar",
+          "size": 11856988,
+          "sha512": "d47a4cd41022a3b05ee50f5f0f57a6b420b9335988ab05d8a211345de8de88463438fed834f343e9276e589fa2bef023345667c9236de2e6fad3f82484ba80e5",
+          "sha256": "b0b06da142fcad5c6ef624f737d5ca35d0f59ca30b022a21f7c4aa66acc0033e",
+          "sha1": "da67ad27a7073e74f7c60803c24d9487d2b8ce43",
+          "md5": "7c6c029612a7209b308ce581d7bf7ec0"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "builder-8.1.2-javadoc.jar",
+          "url": "builder-8.1.2-javadoc.jar",
+          "size": 400630,
+          "sha512": "225b6e08decb511b1a1eb29aba0dfa58d8458d0fbe17c2f00fb291099bccf3c900098b73d3ea2b7cf1b6c4de3294434188c2ef07fbdc9c15d9ca75c3ee99242b",
+          "sha256": "de0293d9db484a23b5d9802893a395c0a03eaf2d749989651f0de322796e2ec2",
+          "sha1": "97a1dc8018f9bed1937d8e88ffec6959b0a54def",
+          "md5": "b07224b959248d8ea4f34087e30aa5bd"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "builder-8.1.2-sources.jar",
+          "url": "builder-8.1.2-sources.jar",
+          "size": 281982,
+          "sha512": "65323417f3937405e2ba1a2bc4d29d4583c42ebaa3f4686ddd4ef866f7d6a2416b53dbf788d75557cd8b430cceadabf89e4b27cb4011e8a71f0c1ecdd3b535e7",
+          "sha256": "c2c8532e38fcdcb2cad4555570acc6f12b764a89018d5be8aa10c448265cb0db",
+          "sha1": "b41ba35052cb32bc6724aea4af6d6dbd56ec3682",
+          "md5": "ba35e829ea4edca725f45333bd8d173c"
+        },
+        {
+          "name": "builder-8.1.2-sources.jar",
+          "url": "builder-8.1.2-sources.jar",
+          "size": 281982,
+          "sha512": "65323417f3937405e2ba1a2bc4d29d4583c42ebaa3f4686ddd4ef866f7d6a2416b53dbf788d75557cd8b430cceadabf89e4b27cb4011e8a71f0c1ecdd3b535e7",
+          "sha256": "c2c8532e38fcdcb2cad4555570acc6f12b764a89018d5be8aa10c448265cb0db",
+          "sha1": "b41ba35052cb32bc6724aea4af6d6dbd56ec3682",
+          "md5": "ba35e829ea4edca725f45333bd8d173c"
+        }
+      ]
+    }
+  ]
+}

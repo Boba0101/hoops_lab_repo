@@ -1,0 +1,2 @@
+C:/Users/weiji/AndroidStudioProjects/hoops_lab_v1/android/app/.cxx/RelWithDebInfo/28h66j4s/x86/CMakeFiles/edit_cache.dir
+C:/Users/weiji/AndroidStudioProjects/hoops_lab_v1/android/app/.cxx/RelWithDebInfo/28h66j4s/x86/CMakeFiles/rebuild_cache.dir

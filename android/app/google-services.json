@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "761758829736",
+    "project_id": "hoopslab-v1",
+    "storage_bucket": "hoopslab-v1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:761758829736:android:40e73c7ccbdf29bbdc069d",
+        "android_client_info": {
+          "package_name": "com.example.hoops_lab_v1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUec81SMycRFBNvzddWffcOLPHkF3YJyU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
