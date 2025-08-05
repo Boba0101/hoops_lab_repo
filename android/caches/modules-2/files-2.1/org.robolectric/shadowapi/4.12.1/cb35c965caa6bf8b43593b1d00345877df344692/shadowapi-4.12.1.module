@@ -1,0 +1,92 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.robolectric",
+    "module": "shadowapi",
+    "version": "4.12.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.7"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.robolectric",
+          "module": "annotations",
+          "version": {
+            "requires": "4.12.1"
+          }
+        },
+        {
+          "group": "org.robolectric",
+          "module": "utils",
+          "version": {
+            "requires": "4.12.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "shadowapi-4.12.1.jar",
+          "url": "shadowapi-4.12.1.jar",
+          "size": 15189,
+          "sha512": "03d323f3bf9ea0f9a28c5dc5628bac35a216da9425ca01e730e876400e1044f973b973af7ff6f36513d3396c505a183128ff779c663634158cf0059e49e40a32",
+          "sha256": "53037d10598491ae5b859d900b86fe4fbcc5b499ec7e218d361490fe62d00e4c",
+          "sha1": "9adce46e653d0fb1276aea78bdcf0c4699e7d813",
+          "md5": "ab6e65f77bba6656ba4583a01167b81b"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.robolectric",
+          "module": "annotations",
+          "version": {
+            "requires": "4.12.1"
+          }
+        },
+        {
+          "group": "org.robolectric",
+          "module": "utils",
+          "version": {
+            "requires": "4.12.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "shadowapi-4.12.1.jar",
+          "url": "shadowapi-4.12.1.jar",
+          "size": 15189,
+          "sha512": "03d323f3bf9ea0f9a28c5dc5628bac35a216da9425ca01e730e876400e1044f973b973af7ff6f36513d3396c505a183128ff779c663634158cf0059e49e40a32",
+          "sha256": "53037d10598491ae5b859d900b86fe4fbcc5b499ec7e218d361490fe62d00e4c",
+          "sha1": "9adce46e653d0fb1276aea78bdcf0c4699e7d813",
+          "md5": "ab6e65f77bba6656ba4583a01167b81b"
+        }
+      ]
+    }
+  ]
+}

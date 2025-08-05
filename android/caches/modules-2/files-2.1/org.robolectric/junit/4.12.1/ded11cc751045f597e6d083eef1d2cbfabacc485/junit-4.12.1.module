@@ -1,0 +1,134 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.robolectric",
+    "module": "junit",
+    "version": "4.12.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.7"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.robolectric",
+          "module": "annotations",
+          "version": {
+            "requires": "4.12.1"
+          }
+        },
+        {
+          "group": "org.robolectric",
+          "module": "sandbox",
+          "version": {
+            "requires": "4.12.1"
+          }
+        },
+        {
+          "group": "org.robolectric",
+          "module": "pluginapi",
+          "version": {
+            "requires": "4.12.1"
+          }
+        },
+        {
+          "group": "org.robolectric",
+          "module": "shadowapi",
+          "version": {
+            "requires": "4.12.1"
+          }
+        },
+        {
+          "group": "org.robolectric",
+          "module": "utils-reflector",
+          "version": {
+            "requires": "4.12.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "junit-4.12.1.jar",
+          "url": "junit-4.12.1.jar",
+          "size": 13642,
+          "sha512": "0fef617afde56e37f3a1092fc8f933a57831b0c4bea641cc7effd3aab80ee503249be4d705d7213a0c3ca4a7f2d94185863bd96a0e8888371e055bf97a99849b",
+          "sha256": "0f3c784a7c8e02c5b8276897b6dfeeeca8577f4f4845ca06774e18c6819638be",
+          "sha1": "dafbe91aa297d54cd08a060efcd9c9b68d7b2e52",
+          "md5": "080b868e20873a78b16f90d81af7f182"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.robolectric",
+          "module": "annotations",
+          "version": {
+            "requires": "4.12.1"
+          }
+        },
+        {
+          "group": "org.robolectric",
+          "module": "sandbox",
+          "version": {
+            "requires": "4.12.1"
+          }
+        },
+        {
+          "group": "org.robolectric",
+          "module": "pluginapi",
+          "version": {
+            "requires": "4.12.1"
+          }
+        },
+        {
+          "group": "org.robolectric",
+          "module": "shadowapi",
+          "version": {
+            "requires": "4.12.1"
+          }
+        },
+        {
+          "group": "org.robolectric",
+          "module": "utils-reflector",
+          "version": {
+            "requires": "4.12.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "junit-4.12.1.jar",
+          "url": "junit-4.12.1.jar",
+          "size": 13642,
+          "sha512": "0fef617afde56e37f3a1092fc8f933a57831b0c4bea641cc7effd3aab80ee503249be4d705d7213a0c3ca4a7f2d94185863bd96a0e8888371e055bf97a99849b",
+          "sha256": "0f3c784a7c8e02c5b8276897b6dfeeeca8577f4f4845ca06774e18c6819638be",
+          "sha1": "dafbe91aa297d54cd08a060efcd9c9b68d7b2e52",
+          "md5": "080b868e20873a78b16f90d81af7f182"
+        }
+      ]
+    }
+  ]
+}

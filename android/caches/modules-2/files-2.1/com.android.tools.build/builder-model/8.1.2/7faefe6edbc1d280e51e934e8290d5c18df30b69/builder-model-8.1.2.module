@@ -1,0 +1,129 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.android.tools.build",
+    "module": "builder-model",
+    "version": "8.1.2",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "files": [
+        {
+          "name": "builder-model-8.1.2.jar",
+          "url": "builder-model-8.1.2.jar",
+          "size": 113984,
+          "sha512": "df59dd9dee2d9879248f14f3c5d7419db532c15a73827b91fee98209c31ca7b2c19b16fe9ebe85dbf8693a09f851ff3803600fa696f9ffea40e5f029f33c81e0",
+          "sha256": "593ae701f8c7966b6c471b24c316a4dbde5fba286e89e746cfe43e49244b7250",
+          "sha1": "074d6cb39ff40f9ffe1bfcfe04e9bb76c4254afc",
+          "md5": "546482400ca465e9c3687741b61c7fdd"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "com.android.tools",
+          "module": "annotations",
+          "version": {
+            "requires": "31.1.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.8.20-RC2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "builder-model-8.1.2.jar",
+          "url": "builder-model-8.1.2.jar",
+          "size": 113984,
+          "sha512": "df59dd9dee2d9879248f14f3c5d7419db532c15a73827b91fee98209c31ca7b2c19b16fe9ebe85dbf8693a09f851ff3803600fa696f9ffea40e5f029f33c81e0",
+          "sha256": "593ae701f8c7966b6c471b24c316a4dbde5fba286e89e746cfe43e49244b7250",
+          "sha1": "074d6cb39ff40f9ffe1bfcfe04e9bb76c4254afc",
+          "md5": "546482400ca465e9c3687741b61c7fdd"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "builder-model-8.1.2-javadoc.jar",
+          "url": "builder-model-8.1.2-javadoc.jar",
+          "size": 290907,
+          "sha512": "49fc4bab6910e9308273687f81b1e903c6109ca70cf5f1c5da60af01294163a1fc3b34ec3e9b5f1221b0fea0b87990e9ba8fa4200597eb16b2856bb2e3a2d792",
+          "sha256": "23478cdc156458dfd93f664938916e3b5d3f34473ce7fb43d9e47735d92800b2",
+          "sha1": "087f4eb0a424146fab0965177584ede01b366333",
+          "md5": "16116642a42491e3c854b7aca9665f98"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "builder-model-8.1.2-sources.jar",
+          "url": "builder-model-8.1.2-sources.jar",
+          "size": 140439,
+          "sha512": "13d7ba1739d0d529681dcb195f11155c81439a806bf097690930a792128598523f94094cffbf194a0891d3b6713b02d57a948c485e20a4d69edbdbd04bdaf983",
+          "sha256": "77ed837c8815210d3b69bb0e07884883c1afc8f84d8a15e94a7811d8c453bc53",
+          "sha1": "bffc240f53c02c24323917fad1592e12d693bc6b",
+          "md5": "8f4d6aa8e021e46ddf38cf963fa4ff83"
+        },
+        {
+          "name": "builder-model-8.1.2-sources.jar",
+          "url": "builder-model-8.1.2-sources.jar",
+          "size": 140439,
+          "sha512": "13d7ba1739d0d529681dcb195f11155c81439a806bf097690930a792128598523f94094cffbf194a0891d3b6713b02d57a948c485e20a4d69edbdbd04bdaf983",
+          "sha256": "77ed837c8815210d3b69bb0e07884883c1afc8f84d8a15e94a7811d8c453bc53",
+          "sha1": "bffc240f53c02c24323917fad1592e12d693bc6b",
+          "md5": "8f4d6aa8e021e46ddf38cf963fa4ff83"
+        }
+      ]
+    }
+  ]
+}

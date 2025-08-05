@@ -1,0 +1,17 @@
+.git/objects/pack/pack-e7281248c54b3e9c48226c7d00053b57f6e6ff6c.pack filter=lfs diff=lfs merge=lfs -text
+android/caches/8.14/generated-gradle-jars/gradle-api-8.14.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/8.14/transforms/0b6f6b7d0f2a1f4c9c7c5ec70c8cf723/transformed/instrumented/instrumented-kotlin-compiler-embeddable-2.0.21.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/8.14/transforms/2fce95bad7d976b8866c16bec9117d2a/transformed/instrumented/instrumented-kotlin-compiler-embeddable-1.8.22.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/8.14/transforms/3b9bb018621cf68c58e5cf273c0f240f/transformed/instrumented/instrumented-kotlin-compiler-embeddable-1.7.10.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/8.14/transforms/55938278eb93009f9e579bb952af3b11/transformed/instrumented/instrumented-gradle-api-8.9.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/8.14/transforms/61b4b78c3c1a26f7b734b792ef7f2fae/transformed/instrumented/instrumented-kotlin-compiler-embeddable-1.6.10.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/8.14/transforms/adc48555c86c4fa61e250ed57aea450e/transformed/original/gradle-api-8.9.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/8.14/transforms/b9c8fec32a5fb92484dfd77c3e2f547d/transformed/instrumented/instrumented-kotlin-compiler-embeddable-1.9.10.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/8.14/transforms/dc0062102dd02d21982b49c1b65b9205/transformed/instrumented/instrumented-kotlin-compiler-embeddable-1.7.22.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/jars-9/o_5754af24121a5120809e8b2c875a80e6/lib.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/jars-9/o_a1cc6d2f4141788ff5cf3aac6b91265b/gradle-api-8.9.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/modules-2/files-2.1/org.robolectric/nativeruntime-dist-compat/1.0.1/4679d96261a18dc8012977915431de6243d3d7af/nativeruntime-dist-compat-1.0.1.jar filter=lfs diff=lfs merge=lfs -text
+android/caches/modules-2/files-2.1/org.robolectric/nativeruntime-dist-compat/1.0.9/d7f0bb8d2bd86aa84e7d06edd99c64b5139c3555/nativeruntime-dist-compat-1.0.9.jar filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.apk filter=lfs diff=lfs merge=lfs -text
+*.aab filter=lfs diff=lfs merge=lfs -text
