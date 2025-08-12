@@ -1,106 +1,3 @@
-// class Player {
-//   final String id;
-//   final String name;
-//   final double points;
-//   final double rebounds;
-//   final double assists;
-//   final double fgPercentage;
-//   final String? imageUrl; // For Firebase storage
-//   final String? imagePath; // For local file path
-//   final List<FatigueData>? fatigueHistory;
-
-//   @override
-//   bool operator ==(Object other) => // compare Player objects by ID.
-//       identical(this, other) ||
-//       other is Player && runtimeType == other.runtimeType && id == other.id;
-
-//   @override
-//   int get hashCode => id.hashCode;
-
-//   Player({
-//     required this.id,
-//     required this.name,
-//     required this.points,
-//     required this.rebounds,
-//     required this.assists,
-//     required this.fgPercentage,
-//     this.imageUrl,
-//     this.imagePath,
-//     this.fatigueHistory,
-//   });
-
-//   // Convert to map for Firebase
-//   Map<String, dynamic> toMap() {
-//     return {
-//       'id': id,
-//       'name': name,
-//       'points': points,
-//       'rebounds': rebounds,
-//       'assists': assists,
-//       'fgPercentage': fgPercentage,
-//       'imageUrl': imageUrl,
-//       'fatigueHistory': fatigueHistory?.map((f) => f.toMap()).toList(),
-//     };
-//   }
-
-//   // Create from map (for Firebase)
-//   factory Player.fromMap(Map<String, dynamic> map) {
-//     return Player(
-//       id: map['id'],
-//       name: map['name'],
-//       points: (map['points'] is int)
-//           ? (map['points'] as int).toDouble()
-//           : (map['points'] as double),
-//       rebounds: (map['rebounds'] is int)
-//           ? (map['rebounds'] as int).toDouble()
-//           : (map['rebounds'] as double),
-//       assists: (map['assists'] is int)
-//           ? (map['assists'] as int).toDouble()
-//           : (map['assists'] as double),
-//       fgPercentage: (map['fgPercentage'] is int)
-//           ? (map['fgPercentage'] as int).toDouble()
-//           : (map['fgPercentage'] as double),
-//       imageUrl: map['imageUrl'],
-//       fatigueHistory: map['fatigueHistory'] != null
-//           ? (map['fatigueHistory'] as List)
-//               .map((f) => FatigueData.fromMap(f as Map<String, dynamic>))
-//               .toList()
-//           : null,
-//     );
-//   }
-// }
-
-// class FatigueData {
-//   final DateTime date;
-//   final int fatigueLevel; // 1-10 scale
-//   final int minutesPlayed;
-//   final String? notes;
-
-//   FatigueData({
-//     required this.date,
-//     required this.fatigueLevel,
-//     required this.minutesPlayed,
-//     this.notes,
-//   });
-
-//   Map<String, dynamic> toMap() {
-//     return {
-//       'date': date.toIso8601String(),
-//       'fatigueLevel': fatigueLevel,
-//       'minutesPlayed': minutesPlayed,
-//       'notes': notes,
-//     };
-//   }
-
-//   factory FatigueData.fromMap(Map<String, dynamic> map) {
-//     return FatigueData(
-//       date: DateTime.parse(map['date']),
-//       fatigueLevel: map['fatigueLevel'],
-//       minutesPlayed: map['minutesPlayed'],
-//       notes: map['notes'],
-//     );
-//   }
-// }
 class Player {
   final String id;
   final String name;
@@ -129,6 +26,17 @@ class Player {
     required this.position,
     this.imageBase64,
   });
+
+  // Empty constructor for error handling
+  Player.empty()
+      : id = '',
+        name = '',
+        height = 0.0,
+        weight = 0.0,
+        age = 0,
+        team = '',
+        position = '',
+        imageBase64 = null;
 
   // Convert to map for Firebase
   Map<String, dynamic> toMap() {

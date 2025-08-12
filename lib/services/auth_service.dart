@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_service.dart';
+import '../models/user.dart' as app_user;
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -12,30 +14,75 @@ class AuthService {
   // Sign in with email and password
   Future<UserCredential> signInWithEmail(String email, String password) async {
     try {
-      return await _auth.signInWithEmailAndPassword(
+      final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      // Update last login time
+      if (userCredential.user != null) {
+        final firebaseService = FirebaseService();
+        await firebaseService.updateLastLogin(userCredential.user!.uid);
+      }
+
+      return userCredential;
     } catch (e) {
       throw _handleAuthException(e);
     }
   }
 
   // Sign up with email and password
-  Future<UserCredential> signUpWithEmail(String email, String password) async {
+  Future<UserCredential> signUpWithEmail(
+      String email, String password, String role) async {
     try {
-      return await _auth.createUserWithEmailAndPassword(
+      print('Starting sign up process for email: $email with role: $role');
+
+      final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      print(
+          'Firebase Auth user created successfully: ${userCredential.user?.uid}');
+
+      // Create and save user data to Firestore
+      if (userCredential.user != null) {
+        print('Creating user data for Firestore...');
+
+        final user = app_user.User(
+          id: userCredential.user!.uid,
+          email: email,
+          role: role,
+          createdAt: DateTime.now(),
+        );
+
+        print('User object created: ${user.toMap()}');
+
+        final firebaseService = FirebaseService();
+        print('Saving user to Firestore...');
+        await firebaseService.saveUser(user);
+        print('User saved to Firestore successfully!');
+
+        // REMOVED THE TEST RETRIEVAL CALL THAT CAUSED THE ERROR
+      } else {
+        print('ERROR: userCredential.user is null!');
+      }
+
+      return userCredential;
     } catch (e) {
+      print('ERROR in signUpWithEmail: $e');
       throw _handleAuthException(e);
     }
   }
 
   // Sign out
   Future<void> signOut() async {
-    await _auth.signOut();
+    try {
+      // Then sign out
+      await _auth.signOut();
+    } catch (e) {
+      print('Error during sign out: $e');
+    }
   }
 
   // Reset password
@@ -68,5 +115,15 @@ class AuthService {
       }
     }
     return 'An unknown error occurred.';
+  }
+
+  // Get current user's role
+  Future<String?> getCurrentUserRole() async {
+    if (currentUser != null) {
+      final firebaseService = FirebaseService();
+      final user = await firebaseService.getUserById(currentUser!.uid);
+      return user?.role;
+    }
+    return null;
   }
 }

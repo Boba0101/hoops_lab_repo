@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'screens/dashboard_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/schedule_screen.dart';
@@ -8,6 +8,7 @@ import 'screens/match_history_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/firebase_service.dart';
 import 'services/auth_service.dart';
+// import 'models/player.dart'; // Removed unused import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,7 @@ void main() async {
     MultiProvider(
       providers: [
         Provider<AuthService>(create: (_) => AuthService()),
+        Provider<FirebaseService>(create: (_) => FirebaseService()),
       ],
       child: MyApp(),
     ),
@@ -51,7 +53,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
 
-    return StreamBuilder(
+    return StreamBuilder<fb_auth.User?>(
       stream: authService.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.active) {
@@ -81,7 +83,7 @@ class _HoopsLabHomeState extends State<HoopsLabHome> {
   final List<Widget> _screens = [
     DashboardScreen(),
     ScheduleScreen(),
-    HomeScreen(),
+    AuthAwareHomeScreen(), // Updated to use auth-aware home screen
     MatchHistoryScreen(),
     Container(), // Placeholder for More screen
   ];
@@ -209,6 +211,57 @@ class _HoopsLabHomeState extends State<HoopsLabHome> {
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+}
+
+// NEW: Auth-aware home screen widget
+class AuthAwareHomeScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
+    return StreamBuilder<fb_auth.User?>(
+      stream: authService.authStateChanges,
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator(color: Colors.orange));
+        }
+
+        if (!authSnapshot.hasData) {
+          // User is signed out - show empty state
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.sports_basketball, size: 64, color: Colors.orange),
+                SizedBox(height: 20),
+                Text(
+                  'Please sign in to access player data',
+                  style: TextStyle(fontSize: 18),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  ),
+                  child: Text('Sign In'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // User is signed in - show player content
+        return HomeScreen();
+      },
     );
   }
 }

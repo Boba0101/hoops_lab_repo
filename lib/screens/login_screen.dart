@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hoops_lab_v1/screens/home_screen.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 
@@ -15,6 +14,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _isSignUp = false;
   String _errorMessage = '';
+  String _selectedRole = 'Player';
 
   @override
   void dispose() {
@@ -36,9 +36,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final authService = Provider.of<AuthService>(context, listen: false);
 
       if (_isSignUp) {
+        print('LoginScreen: Attempting sign up with role: $_selectedRole');
         await authService.signUpWithEmail(
           _emailController.text.trim(),
           _passwordController.text,
+          _selectedRole,
         );
       } else {
         await authService.signInWithEmail(
@@ -138,6 +140,36 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 SizedBox(height: 8),
+                if (_isSignUp) ...[
+                  DropdownButtonFormField<String>(
+                    value: _selectedRole,
+                    decoration: InputDecoration(
+                      labelText: 'Role',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    items: ['Player', 'Coach'].map((String role) {
+                      return DropdownMenuItem<String>(
+                        value: role,
+                        child: Text(role),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedRole = newValue!;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a role';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 16),
+                ],
                 if (!_isSignUp)
                   Align(
                     alignment: Alignment.centerRight,
@@ -190,6 +222,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         setState(() {
                           _isSignUp = !_isSignUp;
                           _errorMessage = '';
+                          _selectedRole =
+                              'Player'; // Reset to default when switching modes
                         });
                       },
                       child: Text(_isSignUp ? 'Sign In' : 'Sign Up'),
@@ -242,11 +276,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   final authService =
                       Provider.of<AuthService>(context, listen: false);
                   await authService.resetPassword(emailController.text.trim());
+                  if (!mounted) return;
                   Navigator.of(ctx).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Password reset email sent')),
                   );
                 } catch (e) {
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(e.toString())),
                   );
