@@ -36,6 +36,12 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = 1
         versionName = "1.0.0"
+
+          // ✅ Load API key from local.properties
+        def apiKey = project.hasProperty("API_KEY") ? project.API_KEY : ""
+        manifestPlaceholders = [
+            API_KEY: apiKey
+        ]
     }
 
     buildTypes {
