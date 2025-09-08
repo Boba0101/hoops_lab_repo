@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.hoops_lab_v1.app-mergeDebugResources-54:/values-v23/values-v23.xml",
+            "outputFile": "com.example.hoops_lab_v1.app-mergeDebugResources-58:/values-v23/values-v23.xml",
             "map": [
                 {
                     "source": "C:\\Users\\weiji\\.gradle\\caches\\8.14\\transforms\\036fa12bcdca5ceaa9c03336c730d04c\\transformed\\cardview-1.0.0\\res\\values-v23\\values-v23.xml",

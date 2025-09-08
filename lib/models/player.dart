@@ -7,6 +7,7 @@ class Player {
   final String team; // Team name
   final String position; // Player position
   final String? imageBase64; // Base64-encoded image
+  final String? userId; // Link to User account (optional for existing players)
 
   @override
   bool operator ==(Object other) =>
@@ -25,6 +26,7 @@ class Player {
     required this.team,
     required this.position,
     this.imageBase64,
+    this.userId,
   });
 
   // Empty constructor for error handling
@@ -36,7 +38,8 @@ class Player {
         age = 0,
         team = '',
         position = '',
-        imageBase64 = null;
+        imageBase64 = null,
+        userId = null;
 
   // Convert to map for Firebase
   Map<String, dynamic> toMap() {
@@ -49,6 +52,7 @@ class Player {
       'team': team,
       'position': position,
       'imageBase64': imageBase64,
+      'userId': userId,
     };
   }
 
@@ -67,6 +71,7 @@ class Player {
       team: map['team'],
       position: map['position'],
       imageBase64: map['imageBase64'],
+      userId: map['userId'], // Handle existing players without userId
     );
   }
 }

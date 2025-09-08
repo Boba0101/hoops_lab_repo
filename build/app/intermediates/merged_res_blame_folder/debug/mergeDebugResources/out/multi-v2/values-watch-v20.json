@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.hoops_lab_v1.app-mergeDebugResources-54:/values-watch-v20/values-watch-v20.xml",
+            "outputFile": "com.example.hoops_lab_v1.app-mergeDebugResources-58:/values-watch-v20/values-watch-v20.xml",
             "map": [
                 {
                     "source": "C:\\Users\\weiji\\.gradle\\caches\\8.14\\transforms\\931e55b9c870e3aca15f24ed7523b1b3\\transformed\\appcompat-1.7.0\\res\\values-watch-v20\\values-watch-v20.xml",
@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\weiji\\.gradle\\caches\\8.14\\transforms\\466bf0f044d1d4818f003c39cc7b32df\\transformed\\jetified-play-services-auth-21.0.0\\res\\values-watch-v20\\values.xml",
+                    "source": "C:\\Users\\weiji\\.gradle\\caches\\8.14\\transforms\\44049bd07dc6780b8e7dca3d598b563e\\transformed\\jetified-play-services-auth-21.3.0\\res\\values-watch-v20\\values.xml",
                     "from": {
                         "startLines": "4,5,6,7,8,9,10,11",
                         "startColumns": "0,0,0,0,0,0,0,0",

@@ -1,18 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+
+// Screens
 import 'screens/dashboard_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/coach_home_screen.dart'; // Will be refactored into Coach/Player screens
+import 'screens/player_home_screen.dart';
 import 'screens/schedule_screen.dart';
 import 'screens/match_history_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/player_profile_setup_screen.dart';
+import 'screens/coach_profile_setup_screen.dart';
+import 'screens/settings_screen.dart';
+
+// Services and Models
 import 'services/firebase_service.dart';
 import 'services/auth_service.dart';
-// import 'models/player.dart'; // Removed unused import
+import 'models/user.dart' as app_user;
 
 void main() async {
+  // This line MUST be here, and it must be the FIRST line.
   WidgetsFlutterBinding.ensureInitialized();
+
+  // This is the ONLY place we initialize Firebase.
+  // The FirebaseService.initialize() method has a safety check
+  // to prevent it from running more than once.
   await FirebaseService.initialize();
+
+  // THERE SHOULD BE NO OTHER 'Firebase.initializeApp()' CALLS IN THIS FUNCTION.
 
   runApp(
     MultiProvider(
@@ -39,11 +54,16 @@ class MyApp extends StatelessWidget {
         cardTheme: CardTheme(
           elevation: 4,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.0),
           ),
         ),
       ),
-      home: AuthWrapper(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => AuthWrapper(),
+        '/home': (context) => HoopsLabHome(),
+        '/settings': (context) => SettingsScreen(),
+      },
     );
   }
 }
@@ -58,20 +78,107 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.active) {
           final user = snapshot.data;
-          return user != null ? HoopsLabHome() : LoginScreen();
+          if (user == null) {
+            return LoginScreen();
+          }
+          // User is authenticated, check their profile status
+          return ProfileCheckWrapper(user: user);
         }
-
-        // Show a loading indicator while waiting for the auth state
         return Scaffold(
-          backgroundColor: Color(0xFF121212),
-          body: Center(
-            child: CircularProgressIndicator(color: Colors.orange),
-          ),
+          body: Center(child: CircularProgressIndicator(color: Colors.orange)),
         );
       },
     );
   }
 }
+
+// UPDATED: This widget now directs users to the correct profile setup screen
+class ProfileCheckWrapper extends StatelessWidget {
+  final fb_auth.User user;
+
+  const ProfileCheckWrapper({Key? key, required this.user}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final firebaseService = Provider.of<FirebaseService>(context);
+
+    return FutureBuilder<app_user.User?>(
+      // Fetch the user document from Firestore
+      future: firebaseService.getUserById(user.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Colors.orange),
+                  SizedBox(height: 16),
+                  Text('Loading your profile...'),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+          // Handle cases where the user document doesn't exist in Firestore
+          // (e.g., sign-up failed halfway)
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  SizedBox(height: 16),
+                  Text('Error loading your profile data.'),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () =>
+                        Provider.of<AuthService>(context, listen: false)
+                            .signOut(),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange),
+                    child: Text('Return to Login'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final appUser = snapshot.data!;
+
+        // --- CORE NAVIGATION LOGIC ---
+        if (appUser.profileCompleted) {
+          // If profile is complete, let them into the main app
+          print('ProfileCheckWrapper: Profile complete. Entering main app.');
+          return HoopsLabHome();
+        } else {
+          // If profile is NOT complete, route based on role
+          print(
+              'ProfileCheckWrapper: Profile incomplete. Routing to setup screen for role: ${appUser.role}');
+          if (appUser.role == 'Player') {
+            return PlayerProfileSetupScreen();
+          } else if (appUser.role == 'Coach') {
+            return CoachProfileSetupScreen(); // NEW NAVIGATION
+          } else {
+            // Fallback for an unknown role
+            return Scaffold(
+              body: Center(
+                child: Text('Unknown user role. Please contact support.'),
+              ),
+            );
+          }
+        }
+      },
+    );
+  }
+}
+
+// --- MAIN APP SHELL (NO CHANGES BELOW THIS LINE) ---
+// Note: We will refactor HoopsLabHome and AuthAwareHomeScreen in the next step
+// to show role-specific content. The navigation logic above is the key change for now.
 
 class HoopsLabHome extends StatefulWidget {
   @override
@@ -83,7 +190,7 @@ class _HoopsLabHomeState extends State<HoopsLabHome> {
   final List<Widget> _screens = [
     DashboardScreen(),
     ScheduleScreen(),
-    AuthAwareHomeScreen(), // Updated to use auth-aware home screen
+    AuthAwareHomeScreen(),
     MatchHistoryScreen(),
     Container(), // Placeholder for More screen
   ];
@@ -105,6 +212,9 @@ class _HoopsLabHomeState extends State<HoopsLabHome> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
+        // Get the AuthService instance using Provider
+        final authService = Provider.of<AuthService>(context, listen: false);
+
         return Container(
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -117,68 +227,31 @@ class _HoopsLabHomeState extends State<HoopsLabHome> {
               ListTile(
                 leading: Icon(Icons.settings, color: Colors.orange),
                 title: Text("Settings"),
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  // First, pop the bottom sheet
+                  Navigator.pop(context);
+                  // Then, navigate to our new settings screen
+                  Navigator.pushNamed(context, '/settings');
+                },
               ),
               Divider(color: Colors.grey[800]),
               ListTile(
                 leading: Icon(Icons.logout, color: Colors.orange),
                 title: Text("Sign Out"),
                 onTap: () async {
+                  // 1. Close the bottom sheet first for a smooth UX
                   Navigator.pop(context);
-                  await Provider.of<AuthService>(context, listen: false)
-                      .signOut();
+
+                  // 2. Call the signOut method from your AuthService
+                  await authService.signOut();
+
+                  // 3. No need for Navigator.pushReplacement() here!
                 },
               ),
             ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildBottomNavBar() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        child: BottomNavigationBar(
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard),
-              label: 'Dashboard',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today),
-              label: 'Schedule',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history),
-              label: 'History',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.more_horiz),
-              label: 'More',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: Colors.orange,
-          unselectedItemColor: Colors.white70,
-          onTap: _onItemTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Color(0xFF1E1E1E),
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-        ),
-      ),
     );
   }
 
@@ -190,77 +263,75 @@ class _HoopsLabHomeState extends State<HoopsLabHome> {
             [
               'Dashboard',
               'Schedule',
-              'HoopsLab',
-              'Stats',
+              'Home',
+              'History',
               'More'
             ][_selectedIndex],
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 0,
-        actions: _selectedIndex == 2
-            ? [
-                IconButton(
-                  icon: const Text(
-                    '🤖',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  onPressed: () {},
-                )
-              ]
-            : null,
       ),
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: _buildBottomNavBar(),
+
+      // THE FIX IS HERE: Using IndexedStack to preserve the state of each tab.
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens,
+      ),
+
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today), label: 'Schedule'),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'More'),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.orange,
+        unselectedItemColor: Colors.white70,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Color(0xFF1E1E1E),
+      ),
     );
   }
 }
 
-// NEW: Auth-aware home screen widget
 class AuthAwareHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context);
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final firebaseService =
+        Provider.of<FirebaseService>(context, listen: false);
 
-    return StreamBuilder<fb_auth.User?>(
-      stream: authService.authStateChanges,
-      builder: (context, authSnapshot) {
-        if (authSnapshot.connectionState == ConnectionState.waiting) {
+    // This FutureBuilder is the key to showing the correct screen.
+    // It fetches the user's data from Firestore to determine their role.
+    return FutureBuilder<app_user.User?>(
+      future: firebaseService.getUserById(authService.currentUser!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator(color: Colors.orange));
         }
 
-        if (!authSnapshot.hasData) {
-          // User is signed out - show empty state
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
           return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.sports_basketball, size: 64, color: Colors.orange),
-                SizedBox(height: 20),
-                Text(
-                  'Please sign in to access player data',
-                  style: TextStyle(fontSize: 18),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  ),
-                  child: Text('Sign In'),
-                ),
-              ],
+            child: Text(
+              'Could not load user data.\nPlease try signing out and in again.',
+              textAlign: TextAlign.center,
             ),
           );
         }
 
-        // User is signed in - show player content
-        return HomeScreen();
+        final appUser = snapshot.data!;
+
+        // Based on the user's role, return the appropriate home screen widget
+        if (appUser.role == 'Coach') {
+          return CoachHomeScreen();
+        } else {
+          return PlayerHomeScreen();
+        }
       },
     );
   }

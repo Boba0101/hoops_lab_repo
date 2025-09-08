@@ -17,6 +17,10 @@ allprojects {
         mavenCentral()
     }
     subprojects {
+        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+            kotlinOptions.jvmTarget = "1.8"
+            }
+
         afterEvaluate { project ->
             if (project.hasProperty('android')) {
                 project.android {
