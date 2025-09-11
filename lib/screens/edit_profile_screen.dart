@@ -197,7 +197,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   onPressed: _isLoading ? null : _saveProfile,
                   child: _isLoading
                       ? CircularProgressIndicator(color: Colors.white)
-                      : Text('Save Changes'),
+                      : Text(
+                          'Save Changes',
+                          style: TextStyle(color: Colors.white),
+                        ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),

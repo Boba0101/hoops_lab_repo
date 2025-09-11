@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/firebase_service.dart';
+import 'match_history_screen.dart';
 
 // --- Screen-Specific Model ---
 class ScheduleEvent {
@@ -23,42 +24,65 @@ class ScheduleEvent {
   final List<String> participantIds;
   final LatLng? coordinates;
   final String? opponent;
+  final int? ourScore;
+  final int? opponentScore;
 
-  ScheduleEvent(
-      {required this.id,
-      required this.title,
-      required this.dateTime,
-      required this.location,
-      required this.eventType,
-      required this.participantIds,
-      this.coordinates,
-      this.opponent});
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'title': title,
-        'dateTime': Timestamp.fromDate(dateTime),
-        'location': location,
-        'eventType': eventType,
-        'participantIds': participantIds,
-        'coordinates': coordinates != null
-            ? GeoPoint(coordinates!.latitude, coordinates!.longitude)
-            : null,
-        'opponent': opponent
-      };
+  ScheduleEvent({
+    required this.id,
+    required this.title,
+    required this.dateTime,
+    required this.location,
+    required this.eventType,
+    required this.participantIds,
+    this.coordinates,
+    this.opponent,
+    this.ourScore,
+    this.opponentScore,
+  });
+
+  Map<String, dynamic> toMap() {
+    // This method is already correct and does not need to change.
+    return {
+      'id': id,
+      'title': title,
+      'dateTime': Timestamp.fromDate(dateTime),
+      'location': location,
+      'eventType': eventType,
+      'participantIds': participantIds,
+      'coordinates': coordinates != null
+          ? GeoPoint(coordinates!.latitude, coordinates!.longitude)
+          : null,
+      'opponent': opponent,
+      'ourScore': ourScore,
+      'opponentScore': opponentScore,
+    };
+  }
+
+  // --- THIS IS THE ROBUST, CRASH-PROOF VERSION ---
   factory ScheduleEvent.fromMap(Map<String, dynamic> map) {
-    final timestamp = map['dateTime'] as Timestamp;
-    final geoPoint = map['coordinates'] as GeoPoint?;
+    // Safely handle the participantIds list
+    List<String> participants = [];
+    if (map['participantIds'] is List) {
+      // Ensure every item in the list is a string before adding
+      participants =
+          List<String>.from(map['participantIds'].where((id) => id is String));
+    }
+
     return ScheduleEvent(
-        id: map['id'],
-        title: map['title'],
-        dateTime: timestamp.toDate(),
-        location: map['location'],
-        eventType: map['eventType'],
-        participantIds: List<String>.from(map['participantIds']),
-        coordinates: geoPoint != null
-            ? LatLng(geoPoint.latitude, geoPoint.longitude)
-            : null,
-        opponent: map['opponent']);
+      id: map['id'] ?? Uuid().v4(), // Use a default ID if missing
+      title: map['title'] ?? 'Untitled Event',
+      // Safely handle the dateTime field
+      dateTime: (map['dateTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      location: map['location'] ?? 'Unknown Location',
+      eventType: map['eventType'] ?? 'match',
+      participantIds: participants, // Use the safely parsed list
+      coordinates: (map['coordinates'] as GeoPoint?) != null
+          ? LatLng(map['coordinates'].latitude, map['coordinates'].longitude)
+          : null,
+      opponent: map['opponent'],
+      ourScore: map['ourScore'],
+      opponentScore: map['opponentScore'],
+    );
   }
 }
 
@@ -69,6 +93,8 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
   String? _currentUserRole;
   bool _isLoadingRole = true;
   late FirebaseService _firebaseService;
@@ -288,18 +314,62 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return Scaffold(
       body: _isLoadingRole
           ? Center(child: CircularProgressIndicator(color: Colors.orange))
-          : Column(
-              children: [
-                _buildCalendar(),
-                Expanded(child: _buildEventsList()),
-              ],
+          : RefreshIndicator(
+              key: _refreshIndicatorKey,
+              onRefresh:
+                  _loadEvents, // Directly call your existing data fetching method
+              child: CustomScrollView(
+                // Use CustomScrollView to allow scrolling
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(child: _buildCalendar()),
+                  _buildEventsSliverList(), // Call the correct sliver-based list builder
+                ],
+              ),
             ),
       floatingActionButton: _currentUserRole == 'Coach'
           ? FloatingActionButton(
               onPressed: () => _showAddEventDialog(),
               child: Icon(Icons.add),
-              backgroundColor: Colors.orange)
+              backgroundColor: Colors.orange,
+            )
           : null,
+    );
+  }
+
+// --- RENAMED AND REBUILT to return a Sliver ---
+  Widget _buildEventsSliverList() {
+    final selectedDayEvents = _getEventsForDay(_selectedDay!);
+
+    if (selectedDayEvents.isEmpty) {
+      // For an empty list, we still use SliverToBoxAdapter to place a regular widget
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.all(48.0),
+          child: Center(
+            child: Text(
+              _currentUserRole == 'Coach'
+                  ? 'No events scheduled for this day.\nTap + to add a new event.'
+                  : 'No events scheduled for this day.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // SliverList is the correct widget to use here.
+    // It takes a "delegate" which builds the items on demand.
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final event = selectedDayEvents[index];
+          // We can reuse our existing card builder method
+          return _buildEventCard(event);
+        },
+        childCount: selectedDayEvents.length,
+      ),
     );
   }
 
@@ -442,9 +512,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 }
 
-// =======================================================================
-// FINAL, VERIFIED, AND SELF-CONTAINED DIALOG WIDGET
-// =======================================================================
 class _AddEventDialog extends StatefulWidget {
   final ScheduleEvent? event;
   final DateTime selectedDay;
@@ -464,7 +531,12 @@ class _AddEventDialog extends StatefulWidget {
 }
 
 class __AddEventDialogState extends State<_AddEventDialog> {
+  // --- STATE MANAGEMENT ---
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = true; // NEW: Start in a loading state
+
+  // --- LATE VARIABLES ---
+  // These are now guaranteed to be initialized before the form is built.
   late String eventType, title, location;
   String? opponent;
   late DateTime dateTime;
@@ -484,13 +556,13 @@ class __AddEventDialogState extends State<_AddEventDialog> {
   }
 
   Future<void> _initializeAndSetupState() async {
+    // This method now runs in the background.
     String apiKey = '';
     try {
-      // This uses a platform channel to directly ask the Android side
-      // for the metadata value from the manifest. This is very reliable.
-      const MethodChannel channel = MethodChannel(
-          'com.example.hoops_lab_v1/metadata'); // Use your app's package name
-      apiKey = await channel.invokeMethod('getApiKey');
+      // Use the correct package name for your app if it's different.
+      const MethodChannel channel =
+          MethodChannel('com.example.hoops_lab_v1/metadata');
+      apiKey = await channel.invokeMethod('getApiKey') ?? '';
       print('--- Manually read API Key from Manifest: "$apiKey" ---');
     } catch (e) {
       print('--- ERROR reading API Key from Manifest: $e ---');
@@ -503,7 +575,7 @@ class __AddEventDialogState extends State<_AddEventDialog> {
           '--- WARNING: API Key is still empty. Autocomplete will not work. ---');
     }
 
-    // Initialize the rest of the state
+    // Initialize all the state variables
     final e = widget.event;
     eventType = e?.eventType ?? 'match';
     title = e?.title ?? '';
@@ -515,13 +587,17 @@ class __AddEventDialogState extends State<_AddEventDialog> {
     _locationController = TextEditingController(text: location);
 
     _locationFocusNode.addListener(() {
-      if (!_locationFocusNode.hasFocus) {
-        if (mounted) setState(() => _placePredictions = []);
+      if (!_locationFocusNode.hasFocus && mounted) {
+        setState(() => _placePredictions = []);
       }
     });
 
-    // This is important to ensure the UI rebuilds after the async setup
-    if (mounted) setState(() {});
+    // Once all setup is complete, turn off loading and rebuild the UI
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -628,15 +704,31 @@ class __AddEventDialogState extends State<_AddEventDialog> {
 
   void _onSavePressed() {
     if (!_formKey.currentState!.validate()) return;
-    if (selectedPlayerIds.length < 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please select at least 5 players')));
+
+    // Validation for minimum players
+    final minPlayers = eventType == 'match' ? 5 : 1;
+    if (selectedPlayerIds.length < minPlayers) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Please select at least $minPlayers player(s).')));
       return;
     }
+
+    // --- DEBUGGING PRINT STATEMENT ---
+    print("--- SAVING EVENT ---");
+    print("Local DateTime object being saved: ${dateTime.toString()}");
+    print("Is UTC: ${dateTime.isUtc}");
+    // -------------------------
+
+    final utcDateTime = dateTime.toUtc();
+
+    print("--- SAVING EVENT ---");
+    print("Local DateTime: ${dateTime.toString()}");
+    print("UTC DateTime being saved: ${utcDateTime.toString()}");
+
     final newEvent = ScheduleEvent(
       id: widget.event?.id ?? Uuid().v4(),
       title: title,
-      dateTime: dateTime,
+      dateTime: utcDateTime, // Pass the explicit UTC DateTime object
       location: location,
       eventType: eventType,
       participantIds: selectedPlayerIds,
@@ -651,179 +743,217 @@ class __AddEventDialogState extends State<_AddEventDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(widget.event != null ? 'Edit Event' : 'Add New Event'),
-      content: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  Expanded(
-                      child: RadioListTile<String>(
-                          title: Text('Match'),
-                          value: 'match',
-                          groupValue: eventType,
-                          onChanged: (v) => setState(() => eventType = v!))),
-                  Expanded(
-                      child: RadioListTile<String>(
-                          title: Text('Training'),
-                          value: 'training',
-                          groupValue: eventType,
-                          onChanged: (v) => setState(() => eventType = v!)))
-                ]),
-                TextFormField(
-                    initialValue: title,
-                    decoration: InputDecoration(
-                        labelText: 'Title', border: OutlineInputBorder()),
-                    validator: (v) =>
-                        v!.isEmpty ? 'Please enter a title' : null,
-                    onChanged: (v) => title = v),
-                SizedBox(height: 16),
-                Text('Date & Time'),
-                Row(children: [
-                  Expanded(
-                      child: Text(
-                          DateFormat('EEE, MMM d, yyyy').format(dateTime))),
-                  TextButton(
-                      child: Text('Change'),
-                      onPressed: () async {
-                        final newDate = await showDatePicker(
-                            context: context,
-                            initialDate: dateTime,
-                            firstDate: DateTime(2020),
-                            lastDate: DateTime(2030));
-                        if (newDate != null)
-                          setState(() => dateTime = DateTime(
-                              newDate.year,
-                              newDate.month,
-                              newDate.day,
-                              dateTime.hour,
-                              dateTime.minute));
-                      })
-                ]),
-                Row(children: [
-                  Expanded(
-                      child: Text(
-                          TimeOfDay.fromDateTime(dateTime).format(context))),
-                  TextButton(
-                      child: Text('Change'),
-                      onPressed: () async {
-                        final newTime = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.fromDateTime(dateTime));
-                        if (newTime != null)
-                          setState(() => dateTime = DateTime(
-                              dateTime.year,
-                              dateTime.month,
-                              dateTime.day,
-                              newTime.hour,
-                              newTime.minute));
-                      })
-                ]),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _locationController,
-                  focusNode: _locationFocusNode,
-                  decoration: InputDecoration(
-                      labelText: 'Location', border: OutlineInputBorder()),
-                  validator: (v) =>
-                      v!.isEmpty ? 'Please enter a location' : null,
-                  onChanged: (value) {
-                    location = value;
-                    if (_debounce?.isActive ?? false) _debounce!.cancel();
-                    _debounce = Timer(const Duration(milliseconds: 700), () {
-                      _fetchPlacePredictions(value);
-                      _geocodeAddress(value);
-                    });
-                  },
-                ),
-                if (_placePredictions.isNotEmpty)
-                  SizedBox(
-                    height: 150,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _placePredictions.length,
-                      itemBuilder: (context, index) {
-                        final prediction = _placePredictions[index];
-                        return ListTile(
-                          title: Text(prediction.description ?? ''),
-                          onTap: () => _onPredictionSelected(prediction),
-                        );
-                      },
-                    ),
+      content: _isLoading
+          ? Container(
+              height: 100,
+              child: Center(child: CircularProgressIndicator()),
+            )
+          : Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // The entire form UI is here, unchanged from the last correct version
+                      Row(children: [
+                        Expanded(
+                            child: RadioListTile<String>(
+                                title: Text('Match'),
+                                value: 'match',
+                                groupValue: eventType,
+                                onChanged: (v) =>
+                                    setState(() => eventType = v!))),
+                        Expanded(
+                            child: RadioListTile<String>(
+                                title: Text('Training'),
+                                value: 'training',
+                                groupValue: eventType,
+                                onChanged: (v) =>
+                                    setState(() => eventType = v!)))
+                      ]),
+                      TextFormField(
+                          initialValue: title,
+                          decoration: InputDecoration(
+                              labelText: 'Title', border: OutlineInputBorder()),
+                          validator: (v) =>
+                              v!.isEmpty ? 'Please enter a title' : null,
+                          onChanged: (v) => title = v),
+                      SizedBox(height: 16),
+                      Text('Date & Time'),
+                      Row(children: [
+                        Expanded(
+                            child: Text(DateFormat('EEE, MMM d, yyyy')
+                                .format(dateTime))),
+                        TextButton(
+                            child: Text('Change'),
+                            onPressed: () async {
+                              final newDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: dateTime,
+                                  firstDate: DateTime(2020),
+                                  lastDate: DateTime(2030));
+                              if (newDate != null) {
+                                setState(() {
+                                  // Reconstruct the DateTime object in the local timezone
+                                  dateTime = DateTime(
+                                      newDate.year,
+                                      newDate.month,
+                                      newDate.day,
+                                      dateTime.hour,
+                                      dateTime.minute);
+                                });
+                              }
+                            })
+                      ]),
+                      Row(children: [
+                        Expanded(
+                            child: Text(TimeOfDay.fromDateTime(dateTime)
+                                .format(context))),
+                        TextButton(
+                            child: Text('Change'),
+                            onPressed: () async {
+                              final newTime = await showTimePicker(
+                                  context: context,
+                                  initialTime:
+                                      TimeOfDay.fromDateTime(dateTime));
+                              if (newTime != null) {
+                                setState(() {
+                                  // Reconstruct the DateTime object in the local timezone
+                                  dateTime = DateTime(
+                                      dateTime.year,
+                                      dateTime.month,
+                                      dateTime.day,
+                                      newTime.hour,
+                                      newTime.minute);
+                                });
+                              }
+                            })
+                      ]),
+                      SizedBox(height: 16),
+                      TextFormField(
+                          controller: _locationController,
+                          focusNode: _locationFocusNode,
+                          decoration: InputDecoration(
+                              labelText: 'Location',
+                              border: OutlineInputBorder()),
+                          validator: (v) =>
+                              v!.isEmpty ? 'Please enter a location' : null,
+                          onChanged: (value) {
+                            location = value;
+                            if (_debounce?.isActive ?? false)
+                              _debounce!.cancel();
+                            _debounce =
+                                Timer(const Duration(milliseconds: 700), () {
+                              _fetchPlacePredictions(value);
+                              _geocodeAddress(value);
+                            });
+                          }),
+                      if (_placePredictions.isNotEmpty)
+                        SizedBox(
+                            height: 150,
+                            child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: _placePredictions.length,
+                                itemBuilder: (context, index) {
+                                  final prediction = _placePredictions[index];
+                                  return ListTile(
+                                      title: Text(prediction.description ?? ''),
+                                      onTap: () =>
+                                          _onPredictionSelected(prediction));
+                                })),
+                      SizedBox(height: 16),
+                      Text('Location on Map (Tap to select)'),
+                      SizedBox(height: 8),
+                      Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey)),
+                          child: GoogleMap(
+                              initialCameraPosition: CameraPosition(
+                                  target:
+                                      coordinates ?? LatLng(3.1390, 101.6869),
+                                  zoom: 14),
+                              markers: coordinates != null
+                                  ? {
+                                      Marker(
+                                          markerId: MarkerId('selected'),
+                                          position: coordinates!)
+                                    }
+                                  : {},
+                              onMapCreated: (controller) =>
+                                  _mapController = controller,
+                              onTap: (position) {
+                                setState(() => coordinates = position);
+                                _reverseGeocode(position);
+                              })),
+                      SizedBox(height: 16),
+                      if (eventType == 'match') ...[
+                        TextFormField(
+                            initialValue: opponent,
+                            decoration: InputDecoration(
+                                labelText: 'Opponent Team',
+                                border: OutlineInputBorder()),
+                            onChanged: (v) => opponent = v),
+                        SizedBox(height: 16)
+                      ],
+                      Text('Select Players (at least 5)',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text('${selectedPlayerIds.length} selected',
+                          style: TextStyle(
+                              color: selectedPlayerIds.length >= 5
+                                  ? Colors.green
+                                  : Colors.red)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            child: Text("Select All"),
+                            onPressed: () {
+                              setState(() {
+                                selectedPlayerIds =
+                                    widget.players.map((p) => p.id).toList();
+                              });
+                            },
+                          ),
+                          TextButton(
+                            child: Text("Deselect All"),
+                            onPressed: () {
+                              setState(() {
+                                selectedPlayerIds = [];
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey)),
+                          child: ListView.builder(
+                              itemCount: widget.players.length,
+                              itemBuilder: (context, index) {
+                                final player = widget.players[index];
+                                final isSelected =
+                                    selectedPlayerIds.contains(player.id);
+                                return CheckboxListTile(
+                                    title: Text(player.name ?? 'Unknown'),
+                                    subtitle: Text(player.position ?? 'N/A'),
+                                    value: isSelected,
+                                    onChanged: (selected) => setState(() {
+                                          if (selected!)
+                                            selectedPlayerIds.add(player.id);
+                                          else
+                                            selectedPlayerIds.remove(player.id);
+                                        }));
+                              })),
+                    ],
                   ),
-                SizedBox(height: 16),
-                Text('Location on Map (Tap to select)'),
-                SizedBox(height: 8),
-                Container(
-                  height: 200,
-                  decoration:
-                      BoxDecoration(border: Border.all(color: Colors.grey)),
-                  child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                        target: coordinates ?? LatLng(3.1390, 101.6869),
-                        zoom: 14),
-                    markers: coordinates != null
-                        ? {
-                            Marker(
-                                markerId: MarkerId('selected'),
-                                position: coordinates!)
-                          }
-                        : {},
-                    onMapCreated: (controller) => _mapController = controller,
-                    onTap: (position) {
-                      setState(() => coordinates = position);
-                      _reverseGeocode(position);
-                    },
-                  ),
                 ),
-                SizedBox(height: 16),
-                if (eventType == 'match') ...[
-                  TextFormField(
-                      initialValue: opponent,
-                      decoration: InputDecoration(
-                          labelText: 'Opponent Team',
-                          border: OutlineInputBorder()),
-                      onChanged: (v) => opponent = v),
-                  SizedBox(height: 16)
-                ],
-                Text('Select Players (at least 5)',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('${selectedPlayerIds.length} selected',
-                    style: TextStyle(
-                        color: selectedPlayerIds.length >= 5
-                            ? Colors.green
-                            : Colors.red)),
-                Container(
-                  height: 200,
-                  decoration:
-                      BoxDecoration(border: Border.all(color: Colors.grey)),
-                  child: ListView.builder(
-                    itemCount: widget.players.length,
-                    itemBuilder: (context, index) {
-                      final player = widget.players[index];
-                      final isSelected = selectedPlayerIds.contains(player.id);
-                      return CheckboxListTile(
-                          title: Text(player.name ?? 'Unknown'),
-                          subtitle: Text(player.position ?? 'N/A'),
-                          value: isSelected,
-                          onChanged: (selected) => setState(() {
-                                if (selected!)
-                                  selectedPlayerIds.add(player.id);
-                                else
-                                  selectedPlayerIds.remove(player.id);
-                              }));
-                    },
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context), child: Text('Cancel')),

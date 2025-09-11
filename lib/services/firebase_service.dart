@@ -1,9 +1,13 @@
 // lib/services/firebase_service.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
-import '../models/user.dart'; // We only need the User model now
+
+import '../models/game_stats.dart';
+import '../models/live_game.dart';
+import '../models/user.dart';
+import '../models/event_with_stats_status.dart';
+import '../screens/schedule_screen.dart' as app_event;
 import '../firebase_options.dart';
 
 class FirebaseService {
@@ -17,6 +21,10 @@ class FirebaseService {
 
   // Collection reference
   CollectionReference get usersCollection => _db.collection('users');
+  // Collection reference for game stats
+  CollectionReference get gameStatsCollection => _db.collection('game_stats');
+  // Collection reference for live games
+  CollectionReference get liveGamesCollection => _db.collection('live_games');
 
   // Initialize Firebase
   static Future<void> initialize() async {
@@ -39,8 +47,6 @@ class FirebaseService {
       print('Firebase initialization error: $e');
     }
   }
-
-  // --- NEW UNIFIED METHODS ---
 
   // Save or update a user document (typically on sign-up)
   Future<void> saveUser(User user) async {
@@ -66,6 +72,50 @@ class FirebaseService {
       rethrow;
     }
     return null;
+  }
+
+  Stream<List<EventWithStatsStatus>> getPastEventsWithStatsStatus() {
+    print("--- Subscribing to Past Events Stream ---");
+    return _db
+        .collection('scheduleEvents')
+        .where('dateTime', isLessThan: DateTime.now())
+        .orderBy('dateTime', descending: true)
+        .snapshots()
+        .asyncMap((eventSnapshot) async {
+      // --- DEBUGGING BLOCK ---
+      print(
+          "--- Stream Updated: Found ${eventSnapshot.docs.length} past events ---");
+      for (final doc in eventSnapshot.docs) {
+        final data = doc.data();
+        print(
+            "  - Event ID: ${doc.id}, Title: ${data['title']}, Time: ${data['dateTime']}");
+      }
+      // --- END DEBUGGING BLOCK ---
+
+      List<EventWithStatsStatus> processedEvents = [];
+      if (eventSnapshot.docs.isEmpty) {
+        return processedEvents;
+      }
+
+      List<Future<bool>> statChecks = [];
+      for (final doc in eventSnapshot.docs) {
+        statChecks.add(doesEventHaveStats(doc.id));
+      }
+
+      List<bool> hasStatsResults = await Future.wait(statChecks);
+
+      for (int i = 0; i < eventSnapshot.docs.length; i++) {
+        final event =
+            app_event.ScheduleEvent.fromMap(eventSnapshot.docs[i].data());
+        final hasStats = hasStatsResults[i];
+        processedEvents
+            .add(EventWithStatsStatus(event: event, hasStats: hasStats));
+      }
+
+      print(
+          "--- Processed ${processedEvents.length} events with stat status ---");
+      return processedEvents;
+    });
   }
 
   // NEW: Get a stream of all players for the coach's dashboard
@@ -102,5 +152,92 @@ class FirebaseService {
     await usersCollection.doc(userId).update({
       'lastLoginAt': FieldValue.serverTimestamp(),
     });
+  }
+
+// Checks if stats exist for a given event
+  Future<bool> doesEventHaveStats(String eventId) async {
+    final query = await gameStatsCollection
+        .where('eventId', isEqualTo: eventId)
+        .limit(1)
+        .get();
+    return query.docs.isNotEmpty;
+  }
+
+// Gets all player stats for a single game
+  Future<List<PlayerGameStats>> getStatsForEvent(String eventId) async {
+    final query =
+        await gameStatsCollection.where('eventId', isEqualTo: eventId).get();
+
+    return query.docs
+        .map((doc) => PlayerGameStats.fromFirestore(
+            doc as DocumentSnapshot<Map<String, dynamic>>))
+        .toList();
+  }
+
+// Saves the stats for a list of players in a single batch operation
+  Future<void> saveStatsForEvent(
+      String eventId, List<PlayerGameStats> stats) async {
+    final batch = _db.batch();
+
+    for (final playerStats in stats) {
+      // Use the player's user ID as the document ID for easy lookup
+      final docRef =
+          gameStatsCollection.doc('${eventId}_${playerStats.userId}');
+      batch.set(docRef, playerStats.toMap());
+    }
+
+    await batch.commit();
+  }
+
+  Future<List<app_event.ScheduleEvent>> getEventsForToday() async {
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    final endOfDay = startOfDay.add(Duration(days: 1));
+
+    final snapshot = await _db
+        .collection('scheduleEvents')
+        .where('dateTime', isGreaterThanOrEqualTo: startOfDay)
+        .where('dateTime', isLessThan: endOfDay)
+        .orderBy('dateTime')
+        .get();
+
+    return snapshot.docs
+        .map((doc) =>
+            app_event.ScheduleEvent.fromMap(doc.data() as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<app_event.ScheduleEvent>> getUpcomingEvents() async {
+    final now = DateTime.now();
+    final tomorrow =
+        DateTime(now.year, now.month, now.day).add(Duration(days: 1));
+    final sevenDaysFromNow = tomorrow.add(Duration(days: 7));
+
+    final snapshot = await _db
+        .collection('scheduleEvents')
+        .where('dateTime', isGreaterThanOrEqualTo: tomorrow)
+        .where('dateTime', isLessThan: sevenDaysFromNow)
+        .orderBy('dateTime')
+        .limit(5) // Limit to 5 upcoming events to avoid clutter
+        .get();
+
+    return snapshot.docs
+        .map((doc) =>
+            app_event.ScheduleEvent.fromMap(doc.data() as Map<String, dynamic>))
+        .toList();
+  }
+
+// NEW: We also need a way to check for a live game document
+  Future<DocumentSnapshot?> getLiveGame(String eventId) {
+    return _db.collection('live_games').doc(eventId).get();
+  }
+
+  Future<void> saveLiveGame(LiveGame game) {
+    // Use the eventId as the document ID for easy lookup
+    return liveGamesCollection.doc(game.eventId).set(game.toMap());
+  }
+
+  Future<void> deleteLiveGame(String eventId) {
+    return liveGamesCollection.doc(eventId).delete();
   }
 }
