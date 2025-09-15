@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">D’acord</string>
     <string msgid="6573031135582639649" name="not_set">"No definit"</string>
     <string name="password_toggle_content_description">Mostra la contrasenya</string>
+    <string name="places_autocomplete_clear_button">Esborra la cerca</string>
+    <string name="places_autocomplete_label">Tria un lloc</string>
+    <string name="places_autocomplete_no_results_for_query">No s\'ha trobat cap resultat per a %1$s</string>
+    <string name="places_autocomplete_search_hint">Cerca un lloc</string>
+    <string name="places_cancel">Cancel·la</string>
+    <string name="places_powered_by_google">Amb la tecnologia de Google</string>
+    <string name="places_search_error">No es poden carregar els resultats de la cerca.</string>
+    <string name="places_try_again">Torna-ho a provar</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" s\'ha copiat al porta-retalls"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Cerca"</string>
     <string name="searchview_clear_text_content_description">Esborra el text</string>

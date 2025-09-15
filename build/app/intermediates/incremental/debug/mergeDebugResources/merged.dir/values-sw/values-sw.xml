@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">Sawa</string>
     <string msgid="6573031135582639649" name="not_set">"Haijawekwa"</string>
     <string name="password_toggle_content_description">Onyesha nenosiri</string>
+    <string name="places_autocomplete_clear_button">Futa utafutaji</string>
+    <string name="places_autocomplete_label">Chagua eneo</string>
+    <string name="places_autocomplete_no_results_for_query">Hakuna matokeo ya %1$s</string>
+    <string name="places_autocomplete_search_hint">Tafuta mahali</string>
+    <string name="places_cancel">Ghairi</string>
+    <string name="places_powered_by_google">Inaendeshwa na Google</string>
+    <string name="places_search_error">Imeshindwa kupakia matokeo ya utafutaji.</string>
+    <string name="places_try_again">Jaribu tena</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" imenakiliwa kwenye ubao wa kunakili."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Tafuta"</string>
     <string name="searchview_clear_text_content_description">Futa maandishi</string>

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 
+//providers
+import 'providers/app_navigation_state.dart';
+
 // Screens
-import 'screens/dashboard_screen.dart';
-import 'screens/coach_home_screen.dart'; // Will be refactored into Coach/Player screens
+import 'screens/coach_home_screen.dart';
 import 'screens/player_home_screen.dart';
 import 'screens/schedule_screen.dart';
 import 'screens/match_history_screen.dart';
@@ -12,10 +14,13 @@ import 'screens/login_screen.dart';
 import 'screens/player_profile_setup_screen.dart';
 import 'screens/coach_profile_setup_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/chat_screen.dart';
+import 'screens/team_dashboard_screen.dart';
 
 // Services and Models
 import 'services/firebase_service.dart';
 import 'services/auth_service.dart';
+import 'services/ai_service.dart';
 import 'models/user.dart' as app_user;
 
 void main() async {
@@ -27,13 +32,13 @@ void main() async {
   // to prevent it from running more than once.
   await FirebaseService.initialize();
 
-  // THERE SHOULD BE NO OTHER 'Firebase.initializeApp()' CALLS IN THIS FUNCTION.
-
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AppNavigationState()),
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<FirebaseService>(create: (_) => FirebaseService()),
+        Provider<AIService>(create: (_) => AIService()),
       ],
       child: MyApp(),
     ),
@@ -186,22 +191,22 @@ class HoopsLabHome extends StatefulWidget {
 }
 
 class _HoopsLabHomeState extends State<HoopsLabHome> {
-  int _selectedIndex = 2;
+  // The _selectedIndex is now managed by the provider, so we can remove it from this local state.
+
   final List<Widget> _screens = [
-    DashboardScreen(),
+    TeamDashboardScreen(),
     ScheduleScreen(),
     AuthAwareHomeScreen(),
     MatchHistoryScreen(),
-    Container(), // Placeholder for More screen
+    Container(), // Placeholder for the 'More' options
   ];
 
-  void _onItemTapped(int index) {
+  // The _onItemTapped and _showMoreOptions methods will now use the provider
+  void _onItemTapped(int index, AppNavigationState navState) {
     if (index == 4) {
       _showMoreOptions();
     } else {
-      setState(() {
-        _selectedIndex = index;
-      });
+      navState.goToTab(index);
     }
   }
 
@@ -257,44 +262,58 @@ class _HoopsLabHomeState extends State<HoopsLabHome> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-            [
-              'Dashboard',
-              'Schedule',
-              'Home',
-              'History',
-              'More'
-            ][_selectedIndex],
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        elevation: 0,
-      ),
-
-      // THE FIX IS HERE: Using IndexedStack to preserve the state of each tab.
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
-
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today), label: 'Schedule'),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'More'),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.white70,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Color(0xFF1E1E1E),
-      ),
+    // We use a Consumer to listen for changes in the AppNavigationState
+    return Consumer<AppNavigationState>(
+      builder: (context, navState, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              [
+                'Dashboard',
+                'Schedule',
+                'Home',
+                'History',
+                'More'
+              ][navState.selectedIndex],
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            centerTitle: true,
+            elevation: 0,
+            actions: [
+              IconButton(
+                icon: const Text('🤖', style: TextStyle(fontSize: 24)),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ChatScreen())),
+              )
+            ],
+          ),
+          body: IndexedStack(
+            index: navState.selectedIndex, // Get the index from the provider
+            children: _screens,
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            items: const [
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.dashboard), label: 'Dashboard'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today), label: 'Schedule'),
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.history), label: 'History'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.more_horiz), label: 'More'),
+            ],
+            currentIndex:
+                navState.selectedIndex, // Get the index from the provider
+            selectedItemColor: Colors.orange,
+            unselectedItemColor: Colors.white70,
+            onTap: (index) =>
+                _onItemTapped(index, navState), // Update the provider on tap
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Color(0xFF1E1E1E),
+          ),
+        );
+      },
     );
   }
 }

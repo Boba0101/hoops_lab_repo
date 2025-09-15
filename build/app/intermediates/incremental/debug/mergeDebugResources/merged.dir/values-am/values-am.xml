@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">እሺ</string>
     <string msgid="6573031135582639649" name="not_set">"አልተዘጋጀም"</string>
     <string name="password_toggle_content_description">የይለፍ ቃል አሳይ</string>
+    <string name="places_autocomplete_clear_button">ፍለጋ አጽዳ</string>
+    <string name="places_autocomplete_label">ቦታ ይምረጡ</string>
+    <string name="places_autocomplete_no_results_for_query">ምንም የ%1$s ውጤቶች የሉም</string>
+    <string name="places_autocomplete_search_hint">ቦታ ይፈልጉ</string>
+    <string name="places_cancel">ይቅር</string>
+    <string name="places_powered_by_google">በGoogle የተጎላበተ</string>
+    <string name="places_search_error">የፍለጋ ውጤቶችን መጫን አይቻልም።</string>
+    <string name="places_try_again">እንደገና ሞክር</string>
     <string msgid="6685851473431805375" name="preference_copied">"«<ns1:g id="SUMMARY">%1$s</ns1:g>» ወደ የቅንጥብ ሰሌዳ ተቀድቷል።"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"ፍለጋ"</string>
     <string name="searchview_clear_text_content_description">ጽሁፍን አጽዳ</string>

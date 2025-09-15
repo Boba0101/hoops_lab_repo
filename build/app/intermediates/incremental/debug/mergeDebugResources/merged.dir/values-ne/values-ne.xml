@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">ठिक छ</string>
     <string msgid="6573031135582639649" name="not_set">"सेट गरिएको छैन"</string>
     <string name="password_toggle_content_description">पासवर्ड देखाउनुहोस्</string>
+    <string name="places_autocomplete_clear_button">खोज खाली गर्नुहोस्</string>
+    <string name="places_autocomplete_label">कुनै ठाँउ छान्नुहोस्</string>
+    <string name="places_autocomplete_no_results_for_query">%1$s को कुनै पनि परिणाम छैन</string>
+    <string name="places_autocomplete_search_hint">ठाउँ खोज्नुहोस्</string>
+    <string name="places_cancel">रद्द गर्नुहोस्‌</string>
+    <string name="places_powered_by_google">Google द्वारा सञ्चालित</string>
+    <string name="places_search_error">खोज परिणाम लोड गर्न सकिएन।</string>
+    <string name="places_try_again">फेरि प्रयास गर्नु…</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" लाई क्लिपबोर्डमा प्रतिलिपि गरियो।"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"खोज"</string>
     <string name="searchview_clear_text_content_description">टेक्स्ट हटाउनुहोस्</string>

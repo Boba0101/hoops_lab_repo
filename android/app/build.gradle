@@ -55,7 +55,12 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
+        android.buildFeatures.buildConfig true
+
+
         manifestPlaceholders += [MAPS_API_KEY: localProperties.getProperty('MAPS_API_KEY')]
+        // This creates a variable in a special build file called BuildConfig
+        buildConfigField "String", "GEMINI_API_KEY", "\"${localProperties.getProperty('GEMINI_API_KEY')}\""
 
     }
 

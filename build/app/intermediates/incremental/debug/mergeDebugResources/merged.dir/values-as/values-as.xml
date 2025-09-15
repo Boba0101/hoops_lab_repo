@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">OK</string>
     <string msgid="6573031135582639649" name="not_set">"ছেট কৰা হোৱা নাই"</string>
     <string name="password_toggle_content_description">পাছৱৰ্ড দেখুৱাওক</string>
+    <string name="places_autocomplete_clear_button">সন্ধানৰ কৰা সমল মচক</string>
+    <string name="places_autocomplete_label">এখন ঠাই বাছনি কৰক</string>
+    <string name="places_autocomplete_no_results_for_query">%1$sৰ কোনো ফলাফল নাই</string>
+    <string name="places_autocomplete_search_hint">Search a place</string>
+    <string name="places_cancel">বাতিল কৰক</string>
+    <string name="places_powered_by_google">Googleৰ দ্বাৰা সঞ্চালিত</string>
+    <string name="places_search_error">সন্ধানৰ ফলাফল ল’ড কৰিব নোৱাৰি।</string>
+    <string name="places_try_again">আকৌ চেষ্টা কৰক</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" ক্লিপব’ৰ্ডত প্ৰতিলিপি কৰা হ’ল"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"সন্ধান"</string>
     <string name="searchview_clear_text_content_description">Clear text</string>

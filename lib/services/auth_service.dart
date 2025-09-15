@@ -88,7 +88,7 @@ class AuthService {
       print('Creating user document for: ${firebaseUser.uid}');
 
       final appUser = app_user.User(
-        id: firebaseUser.uid,
+        userId: firebaseUser.uid,
         email: email,
         role: role,
         createdAt: DateTime.now(),

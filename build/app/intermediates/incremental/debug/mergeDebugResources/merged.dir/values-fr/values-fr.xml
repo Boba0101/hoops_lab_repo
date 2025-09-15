@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">OK</string>
     <string msgid="6573031135582639649" name="not_set">"Non définie"</string>
     <string name="password_toggle_content_description">Afficher le mot de passe</string>
+    <string name="places_autocomplete_clear_button">Effacer la recherche</string>
+    <string name="places_autocomplete_label">Choisir un lieu</string>
+    <string name="places_autocomplete_no_results_for_query">Aucun résultat pour \"%1$s\"</string>
+    <string name="places_autocomplete_search_hint">Saisir un lieu</string>
+    <string name="places_cancel">Annuler</string>
+    <string name="places_powered_by_google">Fourni par Google</string>
+    <string name="places_search_error">Impossible de charger les résultats de recherche.</string>
+    <string name="places_try_again">Réessayer</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" copié dans le presse-papier."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Rechercher"</string>
     <string name="searchview_clear_text_content_description">Effacer le texte</string>

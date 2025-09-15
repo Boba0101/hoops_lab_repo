@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.hoops_lab_v1.app-mergeDebugResources-58:/values-en-rAU/values-en-rAU.xml",
+            "outputFile": "com.example.hoops_lab_v1.app-mergeDebugResources-59:/values-en-rAU/values-en-rAU.xml",
             "map": [
                 {
                     "source": "C:\\Users\\weiji\\.gradle\\caches\\8.14\\transforms\\a8ec1811f99f6275adf32b3bcefc4b6f\\transformed\\biometric-1.1.0\\res\\values-en-rAU\\values-en-rAU.xml",

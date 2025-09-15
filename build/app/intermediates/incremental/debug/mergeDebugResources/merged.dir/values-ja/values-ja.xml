@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">OK</string>
     <string msgid="6573031135582639649" name="not_set">"未設定"</string>
     <string name="password_toggle_content_description">パスワードを表示</string>
+    <string name="places_autocomplete_clear_button">検索をクリア</string>
+    <string name="places_autocomplete_label">場所を選択</string>
+    <string name="places_autocomplete_no_results_for_query">「%1$s」と一致する結果はありません</string>
+    <string name="places_autocomplete_search_hint">場所を検索</string>
+    <string name="places_cancel">キャンセル</string>
+    <string name="places_powered_by_google">Powered by Google</string>
+    <string name="places_search_error">検索結果を読み込めません。</string>
+    <string name="places_try_again">再試行</string>
     <string msgid="6685851473431805375" name="preference_copied">"「<ns1:g id="SUMMARY">%1$s</ns1:g>」をクリップボードにコピーしました。"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"検索"</string>
     <string name="searchview_clear_text_content_description">テキストを消去</string>

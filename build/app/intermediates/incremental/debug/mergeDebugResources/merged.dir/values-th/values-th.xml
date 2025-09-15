@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">ตกลง</string>
     <string msgid="6573031135582639649" name="not_set">"ไม่ได้ตั้งค่า"</string>
     <string name="password_toggle_content_description">แสดงรหัสผ่าน</string>
+    <string name="places_autocomplete_clear_button">ล้างการค้นหา</string>
+    <string name="places_autocomplete_label">เลือกสถานที่</string>
+    <string name="places_autocomplete_no_results_for_query">ไม่พบผลลัพธ์สำหรับ %1$s</string>
+    <string name="places_autocomplete_search_hint">ค้นหาสถานที่</string>
+    <string name="places_cancel">ยกเลิก</string>
+    <string name="places_powered_by_google">ขับเคลื่อนโดย Google</string>
+    <string name="places_search_error">โหลดผลการค้นหาไม่ได้</string>
+    <string name="places_try_again">ลองอีกครั้ง</string>
     <string msgid="6685851473431805375" name="preference_copied">"คัดลอก \"<ns1:g id="SUMMARY">%1$s</ns1:g>\" ไปยังคลิปบอร์ดแล้ว"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"ค้นหา"</string>
     <string name="searchview_clear_text_content_description">ล้างข้อความ</string>

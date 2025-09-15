@@ -7,19 +7,21 @@ import 'package:intl/intl.dart';
 
 import '../models/user.dart';
 import '../models/game_stats.dart';
+import '../models/team_stats_summary.dart';
 import '../screens/schedule_screen.dart' as app_event;
 import '../services/auth_service.dart';
 import '../services/firebase_service.dart';
 import '../widgets/confirm_starters_dialog.dart';
+import '../providers/app_navigation_state.dart';
 import 'player_detail_screen.dart';
 import 'live_tally_screen.dart';
+import 'player_analytics_screen.dart';
 
-// A helper class to hold all the data for our dashboard in a clean package.
 class _CoachDashboardData {
   final app_event.ScheduleEvent? gameDayEvent;
   final app_event.ScheduleEvent? upcomingEvent;
-  final PlayerGameStats? mvp;
-  final PlayerGameStats? needsImprovement;
+  final PlayerSeasonAverage? mvp;
+  final PlayerSeasonAverage? needsImprovement;
   final String analysisTitle;
 
   _CoachDashboardData({
@@ -61,8 +63,8 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
     final upcomingEvents = eventsFutures[1];
 
     app_event.ScheduleEvent? gameDayEvent;
-    PlayerGameStats? mvp;
-    PlayerGameStats? needsImprovement;
+    PlayerSeasonAverage? mvp;
+    PlayerSeasonAverage? needsImprovement;
     String analysisTitle = "No games with stats found.";
 
     for (final event in todaysEvents) {
@@ -75,8 +77,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
     if (gameDayEvent == null) {
       for (final event in todaysEvents) {
         if (event.dateTime.isAfter(now.subtract(preGameWindow))) {
-          final hasStats = await firebaseService.doesEventHaveStats(event.id);
-          if (!hasStats) {
+          if (!await firebaseService.doesEventHaveStats(event.id)) {
             gameDayEvent = event;
             break;
           }
@@ -84,24 +85,18 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
       }
     }
 
-    final pastEventsSnapshot = await FirebaseFirestore.instance
-        .collection('scheduleEvents')
-        .where('dateTime', isLessThan: now)
-        .orderBy('dateTime', descending: true)
-        .limit(10)
-        .get();
-    for (final doc in pastEventsSnapshot.docs) {
-      final event = app_event.ScheduleEvent.fromMap(doc.data());
-      if (await firebaseService.doesEventHaveStats(event.id)) {
-        final stats = await firebaseService.getStatsForEvent(event.id);
-        if (stats.length >= 2) {
-          stats.sort((a, b) => _calculatePerformanceScore(b.totals)
-              .compareTo(_calculatePerformanceScore(a.totals)));
-          analysisTitle = "Latest Game Analysis: ${event.title}";
-          mvp = stats.first;
-          needsImprovement = stats.last;
-          break;
-        }
+    final summary = await firebaseService.getTeamStatsSummary();
+    if (summary.topScorer != null) {
+      final lastGameWithStats = await _findLastEventWithStats(firebaseService);
+      if (lastGameWithStats != null) {
+        analysisTitle = "Latest Game Analysis: ${lastGameWithStats.title}";
+      }
+      final allAverages = summary.allPlayerAverages;
+      allAverages.sort((a, b) => _calculatePerformanceScore(a)
+          .compareTo(_calculatePerformanceScore(b)));
+      if (allAverages.length >= 2) {
+        needsImprovement = allAverages.first;
+        mvp = allAverages.last;
       }
     }
 
@@ -114,9 +109,24 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
     );
   }
 
-  int _calculatePerformanceScore(StatSet stats) {
-    return (stats.pts + stats.reb + stats.ast + stats.stl + stats.blk) -
-        ((stats.fga - stats.fgm) + (stats.fta - stats.ftm) + stats.tov);
+  double _calculatePerformanceScore(PlayerSeasonAverage avg) {
+    // A simplified PER-like score based on season averages
+    return (avg.ppg + avg.rpg + avg.apg + avg.spg + avg.bpg) - (avg.tpg);
+  }
+
+  Future<app_event.ScheduleEvent?> _findLastEventWithStats(
+      FirebaseService service) async {
+    final pastEvents = await FirebaseFirestore.instance
+        .collection('scheduleEvents')
+        .where('dateTime', isLessThan: DateTime.now())
+        .orderBy('dateTime', descending: true)
+        .get();
+    for (final doc in pastEvents.docs) {
+      if (await service.doesEventHaveStats(doc.id)) {
+        return app_event.ScheduleEvent.fromMap(doc.data());
+      }
+    }
+    return null;
   }
 
   // --- THIS IS THE FULLY IMPLEMENTED NAVIGATION METHOD ---
@@ -216,14 +226,13 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
           }
           if (snapshot.hasError) {
             return Center(
-                child: Text("Error loading dashboard: ${snapshot.error}"));
+                child: Text("Error loading dashboard: ${snapshot.error}",
+                    textAlign: TextAlign.center));
           }
           if (!snapshot.hasData) {
             return Center(child: Text("No data available."));
           }
-
           final data = snapshot.data!;
-
           return RefreshIndicator(
             onRefresh: () {
               setState(() {
@@ -232,6 +241,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
               return _dashboardDataFuture;
             },
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.all(16),
               children: [
                 _buildGameDayCard(data.gameDayEvent),
@@ -358,20 +368,28 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
 
   Widget _buildUpcomingEventsCard(app_event.ScheduleEvent? event) {
     if (event == null) return SizedBox.shrink();
-    return Card(
-      child: ListTile(
-        leading: Icon(Icons.calendar_today, color: Colors.grey[400]),
-        title: Text("Upcoming: ${event.title}"),
-        subtitle:
-            Text(DateFormat('EEEE, MMM d @ h:mm a').format(event.dateTime)),
-        trailing: Icon(Icons.arrow_forward_ios),
-        onTap: () {/* TODO: Navigate to Schedule Tab */},
-      ),
+    return Consumer<AppNavigationState>(
+      builder: (context, navState, child) {
+        return Card(
+          child: ListTile(
+            leading: Icon(Icons.calendar_today, color: Colors.grey[400]),
+            title: Text("Upcoming: ${event.title}"),
+            subtitle:
+                Text(DateFormat('EEEE, MMM d @ h:mm a').format(event.dateTime)),
+            trailing: Icon(Icons.arrow_forward_ios),
+            // --- THIS IS THE IMPLEMENTATION ---
+            onTap: () {
+              // Call the provider's method to change the tab to index 1 (Schedule)
+              navState.goToTab(1);
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildAnalysisCard(
-      PlayerGameStats? mvp, PlayerGameStats? needsImprovement, String title) {
+  Widget _buildAnalysisCard(PlayerSeasonAverage? mvp,
+      PlayerSeasonAverage? needsImprovement, String title) {
     if (mvp == null || needsImprovement == null) {
       return Card(
           child: ListTile(
@@ -402,20 +420,28 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
   }
 
   Widget _buildPlayerHighlight(
-      String title, PlayerGameStats playerStats, Color color) {
+      String title, PlayerSeasonAverage playerAvg, Color color) {
     return Expanded(
-      child: Column(
-        children: [
-          Text(title,
-              style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-          SizedBox(height: 4),
-          Text(playerStats.playerName, style: TextStyle(fontSize: 18)),
-          SizedBox(height: 4),
-          Text(
-              "${playerStats.totals.pts} PTS | ${playerStats.totals.reb} REB | ${playerStats.totals.ast} AST",
-              style: TextStyle(color: Colors.grey[400]),
-              textAlign: TextAlign.center),
-        ],
+      child: InkWell(
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    PlayerAnalyticsScreen(player: playerAvg.player))),
+        child: Column(
+          children: [
+            Text(title,
+                style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+            SizedBox(height: 4),
+            Text(playerAvg.player.name ?? 'Unknown',
+                style: TextStyle(fontSize: 18)),
+            SizedBox(height: 4),
+            Text(
+                "${playerAvg.ppg.toStringAsFixed(1)} PPG | ${playerAvg.rpg.toStringAsFixed(1)} RPG | ${playerAvg.apg.toStringAsFixed(1)} APG",
+                style: TextStyle(color: Colors.grey[400]),
+                textAlign: TextAlign.center),
+          ],
+        ),
       ),
     );
   }
@@ -429,7 +455,6 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
         if (!snapshot.hasData)
           return Center(child: CircularProgressIndicator());
         if (snapshot.data!.isEmpty) return Text("No players registered.");
-
         final players = snapshot.data!;
         return Column(
           children:
@@ -455,10 +480,14 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
             '${player.position ?? 'N/A'} | ${player.height?.toInt() ?? '-'} cm | ${player.weight?.toInt() ?? '-'} kg',
             style: TextStyle(color: Colors.grey[300])),
         trailing: Icon(Icons.chevron_right, color: Colors.grey),
-        onTap: () => Navigator.push(
+        onTap: () {
+          Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => PlayerDetailScreen(player: player))),
+              builder: (context) => PlayerAnalyticsScreen(player: player),
+            ),
+          );
+        },
       ),
     );
   }

@@ -28,7 +28,7 @@ dependencies:
   # UI & Utilities
   cupertino_icons:
   intl:
-  fl_chart:
+  fl_chart: ^0.68.0 # --- THE KEY FIX: Using the latest stable version ---
   flutter_svg:
   cached_network_image:
   image_picker:
@@ -41,17 +41,21 @@ dependencies:
 
   # Maps & Location
   google_maps_flutter:
-  google_places_flutter:
+  
   geolocator:
   geocoding:
-  google_maps_webservice:
+  
   flutter_google_places_hoc081098:
+
+  flutter_google_places_sdk: 0.4.2+1
   
   # Google & Networking
   google_sign_in:
   google_api_headers:
   http:
   package_info_plus: ^4.2.0
+  google_generative_ai: ^0.4.0
+  collection: ^1.19.1
 
 
 dev_dependencies:

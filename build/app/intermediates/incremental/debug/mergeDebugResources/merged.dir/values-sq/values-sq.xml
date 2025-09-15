@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">Në rregull</string>
     <string msgid="6573031135582639649" name="not_set">"Nuk është caktuar"</string>
     <string name="password_toggle_content_description">Shfaq fjalëkalimin</string>
+    <string name="places_autocomplete_clear_button">Pastro kërkimin</string>
+    <string name="places_autocomplete_label">Zgjidh një vend</string>
+    <string name="places_autocomplete_no_results_for_query">Asnjë rezultat për %1$s</string>
+    <string name="places_autocomplete_search_hint">Kërko një vend</string>
+    <string name="places_cancel">Anulo</string>
+    <string name="places_powered_by_google">Mundësuar nga Google</string>
+    <string name="places_search_error">Rezultatet e kërkimit nuk mund të ngarkohen.</string>
+    <string name="places_try_again">Provo sërish</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" u kopjua në kujtesën e fragmenteve"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Kërko"</string>
     <string name="searchview_clear_text_content_description">Pastro tekstin</string>

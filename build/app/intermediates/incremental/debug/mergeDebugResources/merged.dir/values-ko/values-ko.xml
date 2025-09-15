@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">확인</string>
     <string msgid="6573031135582639649" name="not_set">"설정되지 않음"</string>
     <string name="password_toggle_content_description">비밀번호 표시</string>
+    <string name="places_autocomplete_clear_button">검색어 지우기</string>
+    <string name="places_autocomplete_label">장소 선택</string>
+    <string name="places_autocomplete_no_results_for_query">%1$s 검색결과 없음</string>
+    <string name="places_autocomplete_search_hint">장소 검색</string>
+    <string name="places_cancel">취소</string>
+    <string name="places_powered_by_google">Google 제공</string>
+    <string name="places_search_error">검색결과를 로드할 수 없습니다.</string>
+    <string name="places_try_again">다시 시도</string>
     <string msgid="6685851473431805375" name="preference_copied">"\'<ns1:g id="SUMMARY">%1$s</ns1:g>\'이(가) 클립보드에 복사되었습니다."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"검색"</string>
     <string name="searchview_clear_text_content_description">텍스트 삭제</string>

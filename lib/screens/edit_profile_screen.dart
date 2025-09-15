@@ -88,7 +88,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       // Use our existing service method to update the profile
-      await firebaseService.updateUserProfile(widget.user.id, updatedData);
+      await firebaseService.updateUserProfile(widget.user.userId, updatedData);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

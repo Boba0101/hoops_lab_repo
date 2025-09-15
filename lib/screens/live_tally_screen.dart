@@ -63,6 +63,7 @@ class _LiveTallyScreenState extends State<LiveTallyScreen> {
       // Use the starter list passed from the dialog
       _game = LiveGame.startNew(
         eventId: widget.event.id,
+        eventDateTime: widget.event.dateTime, // Pass the dateTime here
         participants: widget.participants,
         coachId: _authService.currentUser!.uid,
         onCourtIds: widget.initialStarters!,
@@ -261,7 +262,7 @@ class _LiveTallyScreenState extends State<LiveTallyScreen> {
               content: Text("Who is coming off the court?"),
               actions: _game.onCourt.map((subOutId) {
                 final player =
-                    _game.participants.firstWhere((p) => p.id == subOutId);
+                    _game.participants.firstWhere((p) => p.userId == subOutId);
                 return TextButton(
                     child: Text(player.name ?? 'Unknown'),
                     onPressed: () {
@@ -524,7 +525,8 @@ class _LiveTallyScreenState extends State<LiveTallyScreen> {
         spacing: 8.0, // Horizontal space between buttons
         runSpacing: 8.0, // Vertical space between button rows
         children: _game.onBench.map((userId) {
-          final player = _game.participants.firstWhere((p) => p.id == userId);
+          final player =
+              _game.participants.firstWhere((p) => p.userId == userId);
           return ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.grey[800],
@@ -542,7 +544,7 @@ class _LiveTallyScreenState extends State<LiveTallyScreen> {
 
   // --- RENAMED & CLEANED UP: On Court Player Card ---
   Widget _buildOnCourtPlayerCard(String userId) {
-    final player = _game.participants.firstWhere((p) => p.id == userId);
+    final player = _game.participants.firstWhere((p) => p.userId == userId);
     final playerStats = _game.playerStats[userId]!;
     final displayMP = _getDisplayMinutesPlayed(playerStats);
     final buttonStyle = ElevatedButton.styleFrom(
@@ -668,7 +670,7 @@ class _LiveTallyScreenState extends State<LiveTallyScreen> {
   }
 
   Widget _buildPlayerCard(String userId, bool onCourt) {
-    final player = _game.participants.firstWhere((p) => p.id == userId);
+    final player = _game.participants.firstWhere((p) => p.userId == userId);
     final playerStats = _game.playerStats[userId]!; // Get the full stats object
 
     // We now call our new helper to get the LIVE minutes played value

@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">OK</string>
     <string msgid="6573031135582639649" name="not_set">"Nie gestel nie"</string>
     <string name="password_toggle_content_description">Wys wagwoord</string>
+    <string name="places_autocomplete_clear_button">Vee soektog uit</string>
+    <string name="places_autocomplete_label">Kies \'n plek</string>
+    <string name="places_autocomplete_no_results_for_query">Geen resultate vir %1$s nie</string>
+    <string name="places_autocomplete_search_hint">Soek ’n plek</string>
+    <string name="places_cancel">Kanselleer</string>
+    <string name="places_powered_by_google">Aangedryf deur Google</string>
+    <string name="places_search_error">Kan nie soekresultate laai nie.</string>
+    <string name="places_try_again">Probeer weer</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" is na knipbord gekopieer."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Soek"</string>
     <string name="searchview_clear_text_content_description">Vee teks uit</string>

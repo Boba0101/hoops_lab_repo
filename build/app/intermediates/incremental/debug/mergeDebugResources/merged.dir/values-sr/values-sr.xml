@@ -150,6 +150,14 @@
     <string name="mtrl_timepicker_confirm">Потврди</string>
     <string msgid="6573031135582639649" name="not_set">"Није подешено"</string>
     <string name="password_toggle_content_description">Прикажи лозинку</string>
+    <string name="places_autocomplete_clear_button">Обришите претрагу</string>
+    <string name="places_autocomplete_label">Изаберите место</string>
+    <string name="places_autocomplete_no_results_for_query">Нема резултата за упит %1$s</string>
+    <string name="places_autocomplete_search_hint">Претражите место</string>
+    <string name="places_cancel">Откажи</string>
+    <string name="places_powered_by_google">Омогућава Google</string>
+    <string name="places_search_error">Учитавање резултата претраге није успело.</string>
+    <string name="places_try_again">Пробај поново</string>
     <string msgid="6685851473431805375" name="preference_copied">"Резиме „<ns1:g id="SUMMARY">%1$s</ns1:g>“ је копиран у привремену меморију."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Претражите"</string>
     <string name="searchview_clear_text_content_description">Обриши текст</string>

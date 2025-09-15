@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.hoops_lab_v1.app-mergeDebugResources-58:/values-en-rCA/values-en-rCA.xml",
+            "outputFile": "com.example.hoops_lab_v1.app-mergeDebugResources-59:/values-en-rCA/values-en-rCA.xml",
             "map": [
                 {
                     "source": "C:\\Users\\weiji\\.gradle\\caches\\8.14\\transforms\\2de9d25e61c789d831a045d1cc1763b5\\transformed\\core-1.16.0\\res\\values-en-rCA\\values-en-rCA.xml",

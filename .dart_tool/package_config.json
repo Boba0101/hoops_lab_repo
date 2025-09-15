@@ -116,18 +116,6 @@
       "languageVersion": "2.12"
     },
     {
-      "name": "dio",
-      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/dio-5.9.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.18"
-    },
-    {
-      "name": "dio_web_adapter",
-      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/dio_web_adapter-2.1.1",
-      "packageUri": "lib/",
-      "languageVersion": "3.3"
-    },
-    {
       "name": "equatable",
       "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/equatable-2.0.7",
       "packageUri": "lib/",
@@ -237,9 +225,9 @@
     },
     {
       "name": "fl_chart",
-      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/fl_chart-1.1.0",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/fl_chart-0.68.0",
       "packageUri": "lib/",
-      "languageVersion": "3.6"
+      "languageVersion": "3.2"
     },
     {
       "name": "flutter",
@@ -267,9 +255,63 @@
     },
     {
       "name": "flutter_google_places_hoc081098",
-      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_hoc081098-1.2.0",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_hoc081098-2.0.0-beta.1",
       "packageUri": "lib/",
-      "languageVersion": "2.14"
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "flutter_google_places_sdk",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_sdk-0.4.2+1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "flutter_google_places_sdk_android",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_sdk_android-0.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "flutter_google_places_sdk_http",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_sdk_http-0.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "flutter_google_places_sdk_ios",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_sdk_ios-0.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "flutter_google_places_sdk_linux",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_sdk_linux-0.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "flutter_google_places_sdk_macos",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_sdk_macos-0.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "flutter_google_places_sdk_platform_interface",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_sdk_platform_interface-0.3.2+1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "flutter_google_places_sdk_web",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_sdk_web-0.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "flutter_google_places_sdk_windows",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_google_places_sdk_windows-0.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
     },
     {
       "name": "flutter_lints",
@@ -312,6 +354,12 @@
       "rootUri": "file:///C:/dev/flutter/packages/flutter_web_plugins",
       "packageUri": "lib/",
       "languageVersion": "3.7"
+    },
+    {
+      "name": "freezed_annotation",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/freezed_annotation-3.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
     },
     {
       "name": "geocoding",
@@ -375,9 +423,15 @@
     },
     {
       "name": "google_api_headers",
-      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/google_api_headers-1.6.0",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/google_api_headers-2.0.3",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "google_generative_ai",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/google_generative_ai-0.4.7",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
     },
     {
       "name": "google_identity_services_web",
@@ -420,18 +474,6 @@
       "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/google_maps_flutter_web-0.5.14+2",
       "packageUri": "lib/",
       "languageVersion": "3.7"
-    },
-    {
-      "name": "google_maps_webservice",
-      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/google_maps_webservice-0.0.20-nullsafety.5",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "google_places_flutter",
-      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/google_places_flutter-2.1.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
     },
     {
       "name": "google_sign_in",
@@ -483,9 +525,9 @@
     },
     {
       "name": "http",
-      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/http-0.13.6",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/http-1.5.0",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
+      "languageVersion": "3.4"
     },
     {
       "name": "http_parser",
@@ -550,6 +592,12 @@
     {
       "name": "json_annotation",
       "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/json_annotation-4.9.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "latlong2",
+      "rootUri": "file:///C:/Users/weiji/AppData/Local/Pub/Cache/hosted/pub.dev/latlong2-0.9.1",
       "packageUri": "lib/",
       "languageVersion": "3.0"
     },
@@ -938,7 +986,7 @@
       "languageVersion": "3.2"
     }
   ],
-  "generated": "2025-09-08T18:51:53.047775Z",
+  "generated": "2025-09-15T09:41:49.316303Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///C:/dev/flutter",

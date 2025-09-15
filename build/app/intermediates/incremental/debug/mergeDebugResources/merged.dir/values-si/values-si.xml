@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">හරි</string>
     <string msgid="6573031135582639649" name="not_set">"සකසා නැත"</string>
     <string name="password_toggle_content_description">මුරපදය පෙන්වන්න</string>
+    <string name="places_autocomplete_clear_button">සෙවීම හිස් කරන්න</string>
+    <string name="places_autocomplete_label">තැනක් තෝරා ගන්න</string>
+    <string name="places_autocomplete_no_results_for_query">%1$s සඳහා ප්‍රතිඵල නැත</string>
+    <string name="places_autocomplete_search_hint">ස්ථානයක් සොයන්න</string>
+    <string name="places_cancel">අවලංගු කරන්න</string>
+    <string name="places_powered_by_google">Google වෙතින් බල ගැන්වූ</string>
+    <string name="places_search_error">සෙවීම් ප්‍රතිඵල පූරණ කළ නොහැක.</string>
+    <string name="places_try_again">නැවත උත්සාහ කරන්න</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" පසුරු පුවරුවට පිටපත් කරන ලදී."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"සෙවීම"</string>
     <string name="searchview_clear_text_content_description">පෙළ හිස් කරන්න</string>

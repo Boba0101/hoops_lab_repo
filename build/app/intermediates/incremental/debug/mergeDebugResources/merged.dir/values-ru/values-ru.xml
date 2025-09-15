@@ -151,6 +151,14 @@
     <string name="mtrl_timepicker_confirm">ОК</string>
     <string msgid="6573031135582639649" name="not_set">"Не указано"</string>
     <string name="password_toggle_content_description">Показать пароль</string>
+    <string name="places_autocomplete_clear_button">Очистить окно поиска</string>
+    <string name="places_autocomplete_label">Выбор места</string>
+    <string name="places_autocomplete_no_results_for_query">По запросу \"%1$s\" ничего не найдено.</string>
+    <string name="places_autocomplete_search_hint">Поиск места</string>
+    <string name="places_cancel">Отмена</string>
+    <string name="places_powered_by_google">Технологии Google</string>
+    <string name="places_search_error">Не удалось загрузить результаты поиска.</string>
+    <string name="places_try_again">Повторить</string>
     <string msgid="6685851473431805375" name="preference_copied">"Текст \"<ns1:g id="SUMMARY">%1$s</ns1:g>\" скопирован в буфер обмена"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Поиск"</string>
     <string name="searchview_clear_text_content_description">Очистить текстовое поле</string>

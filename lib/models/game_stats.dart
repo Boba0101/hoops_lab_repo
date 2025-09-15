@@ -83,19 +83,25 @@ class StatSet {
       'ftm': ftm,
     };
   }
+
+  double get performanceScore {
+    // All the values are integers, so the result is an integer.
+    final score =
+        (pts + reb + ast + stl + blk) - ((fga - fgm) + (fta - ftm) + tov);
+    // We convert it to a double to be safe.
+    return score.toDouble();
+  }
 }
 
 // Represents a single player's full box score for one game
 class PlayerGameStats {
-  final String id; // Firestore document ID
+  final String id;
   final String eventId;
   final String userId;
   final String playerName;
-
-  // FIX: 'totals' is no longer final to allow modification.
+  final DateTime eventDateTime;
   StatSet totals;
   final Map<String, StatSet> quarters;
-
   DateTime? onCourtStartTime;
 
   PlayerGameStats({
@@ -103,35 +109,43 @@ class PlayerGameStats {
     required this.eventId,
     required this.userId,
     required this.playerName,
+    required this.eventDateTime,
     required this.quarters,
-    StatSet? totals, // It's now an optional parameter.
-    this.onCourtStartTime, // Add to constructor
-  }) : this.totals =
-            totals ?? StatSet(); // If not provided, create an empty StatSet.
+    StatSet? totals,
+    this.onCourtStartTime,
+  }) : this.totals = totals ?? StatSet();
 
   factory PlayerGameStats.fromFirestore(
       DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
+    final data = doc.data() ?? {};
     final quartersData = data['quarters'] as Map<String, dynamic>? ?? {};
+
+    final timestamp = data['eventDateTime'] as Timestamp?;
+    if (timestamp == null) {
+      throw StateError(
+          "Game stat document ${doc.id} is missing 'eventDateTime'.");
+    }
 
     return PlayerGameStats(
       id: doc.id,
-      eventId: data['eventId'] ?? '',
-      userId: data['userId'] ?? '',
-      playerName: data['playerName'] ?? 'Unknown Player',
+      eventId: data['eventId'] as String? ?? '',
+      userId: data['userId'] as String? ?? '',
+      playerName: data['playerName'] as String? ?? 'Unknown Player',
+      eventDateTime: timestamp.toDate(),
       totals: StatSet.fromMap(data['totals'] as Map<String, dynamic>? ?? {}),
-      quarters: quartersData.map((key, value) => MapEntry(
-            key,
-            StatSet.fromMap(value as Map<String, dynamic>),
-          )),
+      quarters: quartersData.map((key, value) =>
+          MapEntry(key, StatSet.fromMap(value as Map<String, dynamic>))),
     );
   }
 
+  // --- FINAL, ROBUST toMap METHOD ---
   Map<String, dynamic> toMap() {
     return {
       'eventId': eventId,
       'userId': userId,
       'playerName': playerName,
+      // Always include the correct dateTime when writing to Firestore
+      'eventDateTime': Timestamp.fromDate(eventDateTime),
       'totals': totals.toMap(),
       'quarters': quarters.map((key, value) => MapEntry(key, value.toMap())),
     };

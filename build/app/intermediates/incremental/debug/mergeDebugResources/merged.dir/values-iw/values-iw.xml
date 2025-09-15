@@ -150,6 +150,14 @@
     <string name="mtrl_timepicker_confirm">אישור</string>
     <string msgid="6573031135582639649" name="not_set">"לא מוגדרת"</string>
     <string name="password_toggle_content_description">הצגת סיסמה</string>
+    <string name="places_autocomplete_clear_button">חיפוש חדש</string>
+    <string name="places_autocomplete_label">בחירת מקום</string>
+    <string name="places_autocomplete_no_results_for_query">לא נמצאו תוצאות עבור %1$s</string>
+    <string name="places_autocomplete_search_hint">חיפוש מקום</string>
+    <string name="places_cancel">ביטול</string>
+    <string name="places_powered_by_google">‏מופעל על ידי Google</string>
+    <string name="places_search_error">לא הצלחנו לטעון את תוצאות החיפוש.</string>
+    <string name="places_try_again">ניסיון חוזר</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" הועתק ללוח."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"חיפוש"</string>
     <string name="searchview_clear_text_content_description">מחיקת הטקסט</string>

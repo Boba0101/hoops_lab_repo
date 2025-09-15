@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">Եղավ</string>
     <string msgid="6573031135582639649" name="not_set">"Կարգավորված չէ"</string>
     <string name="password_toggle_content_description">Ցուցադրել գաղտնաբառը</string>
+    <string name="places_autocomplete_clear_button">Ջնջել հարցումը</string>
+    <string name="places_autocomplete_label">Ընտրեք վայր</string>
+    <string name="places_autocomplete_no_results_for_query">«%1$s»՝ արդյունք չի գտնվել</string>
+    <string name="places_autocomplete_search_hint">Որոնեք վայր</string>
+    <string name="places_cancel">Չեղարկել</string>
+    <string name="places_powered_by_google">Google-ի կողմից</string>
+    <string name="places_search_error">Չհաջողվեց բեռնել:</string>
+    <string name="places_try_again">Կրկնել</string>
     <string msgid="6685851473431805375" name="preference_copied">"«<ns1:g id="SUMMARY">%1$s</ns1:g>». պատճենվեց սեղմատախտակին:"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Որոնել"</string>
     <string name="searchview_clear_text_content_description">Ջնջել տեքստը</string>

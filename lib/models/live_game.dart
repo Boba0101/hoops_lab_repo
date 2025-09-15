@@ -1,5 +1,7 @@
 // lib/models/live_game.dart
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/game_stats.dart';
 import '../models/user.dart';
 
@@ -11,17 +13,19 @@ class GameAction {
 // Manages the entire state of a game being tracked live
 class LiveGame {
   final String eventId;
-  final String coachId; // Track which coach started the game
+  final String coachId;
+  final DateTime eventDateTime; // Store the event's dateTime directly
 
   final List<User> participants;
-  final Map<String, PlayerGameStats> playerStats; // Maps userId to their stats
-  final List<String> onCourt; // List of userIds on court
-  final List<String> onBench; // List of userIds on bench
+  final Map<String, PlayerGameStats> playerStats;
+  final List<String> onCourt;
+  final List<String> onBench;
   String currentQuarter;
 
   LiveGame({
     required this.eventId,
     required this.coachId,
+    required this.eventDateTime,
     required this.participants,
     required this.playerStats,
     required this.onCourt,
@@ -29,34 +33,35 @@ class LiveGame {
     this.currentQuarter = 'Q1',
   });
 
-  // Factory to create a new game from a list of players
   factory LiveGame.startNew({
     required String eventId,
+    required DateTime eventDateTime, // Pass the dateTime
     required List<User> participants,
     required String coachId,
-    required List<String> onCourtIds, // Now receives the starters
+    required List<String> onCourtIds,
   }) {
     final stats = {
       for (var p in participants)
-        p.id: PlayerGameStats(
+        p.userId: PlayerGameStats(
           id: '',
           eventId: eventId,
-          userId: p.id,
+          userId: p.userId,
           playerName: p.name ?? 'Unknown',
           quarters: {'Q1': StatSet()},
-          onCourtStartTime: onCourtIds.contains(p.id) ? DateTime.now() : null,
+          // --- FIX ---
+          eventDateTime: eventDateTime,
+          onCourtStartTime:
+              onCourtIds.contains(p.userId) ? DateTime.now() : null,
         )
     };
-
-    // Calculate bench players based on who is NOT on court
     final onBenchIds = participants
-        .map((p) => p.id)
+        .map((p) => p.userId)
         .where((id) => !onCourtIds.contains(id))
         .toList();
-
     return LiveGame(
       eventId: eventId,
       coachId: coachId,
+      eventDateTime: eventDateTime,
       participants: participants,
       playerStats: stats,
       onCourt: onCourtIds,
@@ -64,7 +69,6 @@ class LiveGame {
     );
   }
 
-  // Creates a deep copy of the current state. Essential for the Undo feature.
   LiveGame copy() {
     final copiedStats = {
       for (var entry in playerStats.entries)
@@ -76,14 +80,15 @@ class LiveGame {
           totals: StatSet.fromMap(entry.value.totals.toMap()),
           quarters: entry.value.quarters.map(
               (key, value) => MapEntry(key, StatSet.fromMap(value.toMap()))),
-          // --- ADD THIS LINE ---
+          // --- FIX ---
+          eventDateTime: entry.value.eventDateTime,
           onCourtStartTime: entry.value.onCourtStartTime,
         )
     };
-
     return LiveGame(
       eventId: eventId,
       coachId: coachId,
+      eventDateTime: eventDateTime,
       participants: participants,
       playerStats: copiedStats,
       onCourt: List.from(onCourt),
@@ -92,47 +97,45 @@ class LiveGame {
     );
   }
 
+  // toMap and fromMap also need to be updated to handle the dateTime
   Map<String, dynamic> toMap() {
     return {
       'eventId': eventId,
       'coachId': coachId,
+      'eventDateTime': Timestamp.fromDate(eventDateTime),
       'currentQuarter': currentQuarter,
       'onCourt': onCourt,
       'onBench': onBench,
-      // Convert the playerStats map into a Firestore-compatible map
-      'playerStats': playerStats.map((key, value) {
-        // We only need to save the totals for the live game backup
-        return MapEntry(key, {
-          'totals': value.totals.toMap(),
-          'quarters': value.quarters
-              .map((qKey, qValue) => MapEntry(qKey, qValue.toMap())),
-        });
-      }),
+      'playerStats': playerStats.map((key, value) => MapEntry(key, {
+            'totals': value.totals.toMap(),
+            'quarters': value.quarters
+                .map((qKey, qValue) => MapEntry(qKey, qValue.toMap())),
+          })),
     };
   }
 
-  // Creates a LiveGame object from a Firestore document
   factory LiveGame.fromMap(Map<String, dynamic> map, List<User> participants) {
     final playerStatsData = map['playerStats'] as Map<String, dynamic>;
-
+    final eventDT = (map['eventDateTime'] as Timestamp).toDate();
     final stats = {
       for (var p in participants)
-        p.id: PlayerGameStats(
+        p.userId: PlayerGameStats(
           id: '',
           eventId: map['eventId'],
-          userId: p.id,
+          userId: p.userId,
           playerName: p.name ?? 'Unknown',
-          totals: StatSet.fromMap(playerStatsData[p.id]['totals']),
+          totals: StatSet.fromMap(playerStatsData[p.userId]['totals']),
           quarters:
-              (playerStatsData[p.id]['quarters'] as Map<String, dynamic>).map(
-            (key, value) => MapEntry(key, StatSet.fromMap(value)),
-          ),
+              (playerStatsData[p.userId]['quarters'] as Map<String, dynamic>)
+                  .map((key, value) => MapEntry(key, StatSet.fromMap(value))),
+          // --- FIX ---
+          eventDateTime: eventDT,
         )
     };
-
     return LiveGame(
       eventId: map['eventId'],
       coachId: map['coachId'],
+      eventDateTime: eventDT,
       participants: participants,
       playerStats: stats,
       onCourt: List<String>.from(map['onCourt']),

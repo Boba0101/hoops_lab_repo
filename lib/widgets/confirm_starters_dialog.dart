@@ -22,7 +22,7 @@ class _ConfirmStartersDialogState extends State<ConfirmStartersDialog> {
     super.initState();
     // Pre-select the first 5 players by default
     widget.participants.take(5).forEach((player) {
-      _selectedPlayerIds.add(player.id);
+      _selectedPlayerIds.add(player.userId);
     });
   }
 
@@ -63,9 +63,9 @@ class _ConfirmStartersDialogState extends State<ConfirmStartersDialog> {
             final player = widget.participants[index];
             return CheckboxListTile(
               title: Text(player.name ?? 'Unknown Player'),
-              value: _selectedPlayerIds.contains(player.id),
+              value: _selectedPlayerIds.contains(player.userId),
               onChanged: (isSelected) =>
-                  _onSelectionChanged(player.id, isSelected!),
+                  _onSelectionChanged(player.userId, isSelected!),
             );
           },
         ),

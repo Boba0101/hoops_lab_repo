@@ -2,11 +2,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 import '../models/game_stats.dart';
 import '../models/live_game.dart';
 import '../models/user.dart';
 import '../models/event_with_stats_status.dart';
+import '../models/team_stats_summary.dart';
 import '../screens/schedule_screen.dart' as app_event;
 import '../firebase_options.dart';
 
@@ -52,7 +54,7 @@ class FirebaseService {
   Future<void> saveUser(User user) async {
     print('FirebaseService.saveUser called with user: ${user.toMap()}');
     try {
-      await usersCollection.doc(user.id).set(user.toMap());
+      await usersCollection.doc(user.userId).set(user.toMap());
       print('User data successfully written to Firestore');
     } catch (e) {
       print('ERROR saving user to Firestore: $e');
@@ -163,11 +165,10 @@ class FirebaseService {
     return query.docs.isNotEmpty;
   }
 
-// Gets all player stats for a single game
+  // Gets all player stats for a single game, now requires the event to get the correct date
   Future<List<PlayerGameStats>> getStatsForEvent(String eventId) async {
     final query =
         await gameStatsCollection.where('eventId', isEqualTo: eventId).get();
-
     return query.docs
         .map((doc) => PlayerGameStats.fromFirestore(
             doc as DocumentSnapshot<Map<String, dynamic>>))
@@ -227,6 +228,20 @@ class FirebaseService {
         .toList();
   }
 
+  Future<String?> getEventTitleById(String eventId) async {
+    try {
+      final doc = await _db.collection('scheduleEvents').doc(eventId).get();
+      if (doc.exists) {
+        // Return the 'title' field from the document's data
+        return doc.data()?['title'];
+      }
+      return null; // Return null if the document doesn't exist
+    } catch (e) {
+      print("Error fetching event title for ID $eventId: $e");
+      return null; // Return null on error
+    }
+  }
+
 // NEW: We also need a way to check for a live game document
   Future<DocumentSnapshot?> getLiveGame(String eventId) {
     return _db.collection('live_games').doc(eventId).get();
@@ -239,5 +254,225 @@ class FirebaseService {
 
   Future<void> deleteLiveGame(String eventId) {
     return liveGamesCollection.doc(eventId).delete();
+  }
+
+  Future<List<PlayerGameStats>> getStatsForPlayer(String userId) async {
+    print("--- Searching for stats with userId: '$userId' ---");
+
+    // --- THE FIX ---
+    // We are removing the .orderBy clause which was causing the query to fail.
+    final query = await gameStatsCollection
+        .where('userId', isEqualTo: userId)
+        .orderBy('eventDateTime', descending: true)
+        .get();
+    print("--- Query returned ${query.docs.length} documents. ---");
+
+    if (query.docs.isEmpty) {
+      return []; // Return early if no documents are found.
+    }
+
+    // Convert all documents to PlayerGameStats objects
+    final statsList = query.docs
+        .map((doc) => PlayerGameStats.fromFirestore(
+            doc as DocumentSnapshot<Map<String, dynamic>>))
+        .toList();
+
+    // --- NEW: Perform the sorting here in the app ---
+    statsList.sort((a, b) => b.eventDateTime.compareTo(a.eventDateTime));
+
+    return statsList;
+  }
+
+  Future<void> directQueryTest(String userId) async {
+    print("=============================================");
+    print("--- DIRECT QUERY TEST INITIATED ---");
+    print("Searching 'game_stats' for userId: '$userId'");
+
+    try {
+      final query = await _db
+          .collection('game_stats')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      print("Query completed successfully.");
+      print("Number of documents found: ${query.docs.length}");
+
+      if (query.docs.isNotEmpty) {
+        print("--- DOCUMENT DATA FOUND ---");
+        print(query.docs.first.data());
+      } else {
+        print("--- NO DOCUMENTS MATCHED THE QUERY ---");
+      }
+    } catch (e) {
+      print("!!! DIRECT QUERY FAILED WITH AN ERROR !!!");
+      print(e.toString());
+    }
+    print("=============================================");
+  }
+
+  Future<TeamStatsSummary> getTeamStatsSummary() async {
+    // 1. Fetch all necessary data in parallel for performance
+    final dataFutures = await Future.wait([
+      // Get all players on the roster
+      getPlayersStream().first,
+      // Get all game stat documents
+      gameStatsCollection.get(),
+      // Get all past schedule events to determine wins/losses
+      _db
+          .collection('scheduleEvents')
+          .where('dateTime', isLessThan: DateTime.now())
+          .orderBy('dateTime', descending: true)
+          .get(),
+    ]);
+
+    final List<User> allPlayers = dataFutures[0] as List<User>;
+    final QuerySnapshot gameStatsSnapshot = dataFutures[1] as QuerySnapshot;
+    final QuerySnapshot eventSnapshot = dataFutures[2] as QuerySnapshot;
+
+    final allGameStats = gameStatsSnapshot.docs
+        .map((doc) => PlayerGameStats.fromFirestore(
+            doc as DocumentSnapshot<Map<String, dynamic>>))
+        .toList();
+    final allPastEvents = eventSnapshot.docs
+        .map((doc) =>
+            app_event.ScheduleEvent.fromMap(doc.data() as Map<String, dynamic>))
+        .toList();
+
+    final statsByEvent =
+        groupBy(allGameStats, (PlayerGameStats stat) => stat.eventId);
+
+    PlayerSeasonAverage? mvp;
+    PlayerSeasonAverage? needsImprovement;
+
+    // --- 2. Process Data: Calculate Individual Player Averages ---
+    final List<PlayerSeasonAverage> playerAverages = [];
+
+    final pastEvents = (dataFutures[2] as QuerySnapshot)
+        .docs
+        .map((doc) =>
+            app_event.ScheduleEvent.fromMap(doc.data() as Map<String, dynamic>))
+        .toList();
+    for (final event in pastEvents) {
+      if (statsByEvent.containsKey(event.id)) {
+        final gameStats = statsByEvent[event.id]!;
+        if (gameStats.length >= 2) {
+          // Sort THIS GAME's stats by performance score
+          gameStats.sort((a, b) =>
+              b.totals.performanceScore.compareTo(a.totals.performanceScore));
+
+          // Find the full PlayerSeasonAverage object for the MVP and Needs Improvement player
+          mvp = playerAverages.firstWhereOrNull(
+              (p) => p.player.userId == gameStats.first.userId);
+          needsImprovement = playerAverages.firstWhereOrNull(
+              (p) => p.player.userId == gameStats.last.userId);
+          break; // Stop after the first game
+        }
+      }
+    }
+    for (final player in allPlayers) {
+      // Find all the games this specific player participated in
+      final playerStats =
+          allGameStats.where((stat) => stat.userId == player.userId).toList();
+      final gameCount = playerStats.length;
+
+      if (gameCount > 0) {
+        // Calculate totals for this player
+        int totalPts = playerStats.fold(0, (sum, s) => sum + s.totals.pts);
+        int totalReb = playerStats.fold(0, (sum, s) => sum + s.totals.reb);
+        int totalAst = playerStats.fold(0, (sum, s) => sum + s.totals.ast);
+        int totalStl = playerStats.fold(0, (sum, s) => sum + s.totals.stl);
+        int totalBlk = playerStats.fold(0, (sum, s) => sum + s.totals.blk);
+        int totalTov = playerStats.fold(0, (sum, s) => sum + s.totals.tov);
+
+        int totalFga = playerStats.fold(0, (sum, s) => sum + s.totals.fga);
+        int totalFgm = playerStats.fold(0, (sum, s) => sum + s.totals.fgm);
+        int totalTpa = playerStats.fold(0, (sum, s) => sum + s.totals.fga3);
+        int totalTpm = playerStats.fold(0, (sum, s) => sum + s.totals.fgm3);
+        int totalFta = playerStats.fold(0, (sum, s) => sum + s.totals.fta);
+        int totalFtm = playerStats.fold(0, (sum, s) => sum + s.totals.ftm);
+
+        playerAverages.add(PlayerSeasonAverage(
+          player: player,
+          gameCount: gameCount,
+          ppg: totalPts / gameCount,
+          rpg: totalReb / gameCount,
+          apg: totalAst / gameCount,
+          spg: totalStl / gameCount,
+          bpg: totalBlk / gameCount,
+          tpg: totalTov / gameCount,
+          fgPercentage: totalFga > 0 ? (totalFgm / totalFga) * 100 : 0.0,
+          a_3pPercentage: totalTpa > 0 ? (totalTpm / totalTpa) * 100 : 0.0,
+          ftPercentage: totalFta > 0 ? (totalFtm / totalFta) * 100 : 0.0,
+        ));
+      }
+    }
+
+    // --- 3. Process Data: Calculate Team-Level Stats ---
+    int wins = 0;
+    int losses = 0;
+    for (final event in allPastEvents) {
+      if (event.ourScore != null && event.opponentScore != null) {
+        if (event.ourScore! > event.opponentScore!) {
+          wins++;
+        } else if (event.ourScore! < event.opponentScore!) {
+          losses++;
+        }
+      }
+    }
+
+    final totalTeamGamesWithStats =
+        allPastEvents.where((e) => e.ourScore != null).length;
+    double teamPpg = 0.0;
+    double teamRpg = 0.0;
+    double teamApg = 0.0;
+
+    if (totalTeamGamesWithStats > 0) {
+      int totalTeamPts = allGameStats.fold(0, (sum, s) => sum + s.totals.pts);
+      int totalTeamReb = allGameStats.fold(0, (sum, s) => sum + s.totals.reb);
+      int totalTeamAst = allGameStats.fold(0, (sum, s) => sum + s.totals.ast);
+      teamPpg = totalTeamPts / totalTeamGamesWithStats;
+      teamRpg = totalTeamReb / totalTeamGamesWithStats;
+      teamApg = totalTeamAst / totalTeamGamesWithStats;
+    }
+
+    // --- 4. Process Data: Find Leaderboard Players ---
+    // Sort by highest PPG for top scorer, etc.
+    playerAverages.sort((a, b) => b.ppg.compareTo(a.ppg));
+    final topScorer = playerAverages.isNotEmpty ? playerAverages.first : null;
+
+    playerAverages.sort((a, b) => b.rpg.compareTo(a.rpg));
+    final topRebounder =
+        playerAverages.isNotEmpty ? playerAverages.first : null;
+
+    playerAverages.sort((a, b) => b.apg.compareTo(a.apg));
+    final topPlaymaker =
+        playerAverages.isNotEmpty ? playerAverages.first : null;
+
+    // Restore original sort order (e.g., by name)
+    playerAverages.sort((a, b) => a.player.name!.compareTo(b.player.name!));
+
+    // --- 5. Process Data: Get recent scores for the trend chart ---
+    List<double> recentScores = [];
+    // Take the last 5 games that had a score recorded
+    final recentGames =
+        allPastEvents.where((e) => e.ourScore != null).take(5).toList();
+    // Reverse it so the chart goes from oldest to newest
+    for (final event in recentGames.reversed) {
+      recentScores.add(event.ourScore!.toDouble());
+    }
+
+    // --- 6. Return the final, complete data bundle ---
+    return TeamStatsSummary(
+      wins: wins,
+      losses: losses,
+      teamPpg: teamPpg,
+      teamRpg: teamRpg,
+      teamApg: teamApg,
+      allPlayerAverages: playerAverages,
+      topScorer: topScorer,
+      topRebounder: topRebounder,
+      topPlaymaker: topPlaymaker,
+      recentScores: recentScores,
+    );
   }
 }

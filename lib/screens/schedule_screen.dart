@@ -1,21 +1,20 @@
-// lib/screens/schedule_screen.dart
-
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_webservice/places.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter/services.dart';
+// --- THE ONLY PLACES IMPORT NEEDED ---
+import 'package:flutter_google_places_sdk/flutter_google_places_sdk.dart'
+    as places_sdk;
 
 import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/firebase_service.dart';
-import 'match_history_screen.dart';
 
 // --- Screen-Specific Model ---
 class ScheduleEvent {
@@ -27,62 +26,52 @@ class ScheduleEvent {
   final int? ourScore;
   final int? opponentScore;
 
-  ScheduleEvent({
-    required this.id,
-    required this.title,
-    required this.dateTime,
-    required this.location,
-    required this.eventType,
-    required this.participantIds,
-    this.coordinates,
-    this.opponent,
-    this.ourScore,
-    this.opponentScore,
-  });
-
-  Map<String, dynamic> toMap() {
-    // This method is already correct and does not need to change.
-    return {
-      'id': id,
-      'title': title,
-      'dateTime': Timestamp.fromDate(dateTime),
-      'location': location,
-      'eventType': eventType,
-      'participantIds': participantIds,
-      'coordinates': coordinates != null
-          ? GeoPoint(coordinates!.latitude, coordinates!.longitude)
-          : null,
-      'opponent': opponent,
-      'ourScore': ourScore,
-      'opponentScore': opponentScore,
-    };
-  }
-
-  // --- THIS IS THE ROBUST, CRASH-PROOF VERSION ---
+  ScheduleEvent(
+      {required this.id,
+      required this.title,
+      required this.dateTime,
+      required this.location,
+      required this.eventType,
+      required this.participantIds,
+      this.coordinates,
+      this.opponent,
+      this.ourScore,
+      this.opponentScore});
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'title': title,
+        'dateTime': Timestamp.fromDate(dateTime),
+        'location': location,
+        'eventType': eventType,
+        'participantIds': participantIds,
+        'coordinates': coordinates != null
+            ? GeoPoint(coordinates!.latitude, coordinates!.longitude)
+            : null,
+        'opponent': opponent,
+        'ourScore': ourScore,
+        'opponentScore': opponentScore
+      };
   factory ScheduleEvent.fromMap(Map<String, dynamic> map) {
-    // Safely handle the participantIds list
     List<String> participants = [];
     if (map['participantIds'] is List) {
-      // Ensure every item in the list is a string before adding
       participants =
           List<String>.from(map['participantIds'].where((id) => id is String));
     }
-
+    final utcTimestamp =
+        (map['dateTime'] as Timestamp?)?.toDate() ?? DateTime.now().toUtc();
     return ScheduleEvent(
-      id: map['id'] ?? Uuid().v4(), // Use a default ID if missing
-      title: map['title'] ?? 'Untitled Event',
-      // Safely handle the dateTime field
-      dateTime: (map['dateTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      location: map['location'] ?? 'Unknown Location',
-      eventType: map['eventType'] ?? 'match',
-      participantIds: participants, // Use the safely parsed list
-      coordinates: (map['coordinates'] as GeoPoint?) != null
-          ? LatLng(map['coordinates'].latitude, map['coordinates'].longitude)
-          : null,
-      opponent: map['opponent'],
-      ourScore: map['ourScore'],
-      opponentScore: map['opponentScore'],
-    );
+        id: map['id'] ?? Uuid().v4(),
+        title: map['title'] ?? 'Untitled Event',
+        dateTime: utcTimestamp.toLocal(),
+        location: map['location'] ?? 'Unknown Location',
+        eventType: map['eventType'] ?? 'match',
+        participantIds: participants,
+        coordinates: (map['coordinates'] as GeoPoint?) != null
+            ? LatLng(map['coordinates'].latitude, map['coordinates'].longitude)
+            : null,
+        opponent: map['opponent'],
+        ourScore: map['ourScore'],
+        opponentScore: map['opponentScore']);
   }
 }
 
@@ -93,6 +82,7 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
+  // All state and methods for the main screen are correct.
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   String? _currentUserRole;
@@ -202,17 +192,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   void _showAddEventDialog({ScheduleEvent? event}) {
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return _AddEventDialog(
-          event: event,
-          selectedDay: _selectedDay!,
-          players: _players,
-          onSave: (newEvent) => _saveEvent(newEvent),
-        );
-      },
-    );
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return _AddEventDialog(
+              event: event,
+              selectedDay: _selectedDay!,
+              players: _players,
+              onSave: (newEvent) => _saveEvent(newEvent));
+        });
   }
 
   void _showEventDetails(ScheduleEvent event) {
@@ -250,9 +238,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
               ...event.participantIds.map((playerId) {
-                final player = _players.firstWhere((p) => p.id == playerId,
+                final player = _players.firstWhere((p) => p.userId == playerId,
                     orElse: () => User(
-                        id: playerId,
+                        userId: playerId,
                         email: '',
                         role: 'Player',
                         createdAt: DateTime.now(),
@@ -316,14 +304,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ? Center(child: CircularProgressIndicator(color: Colors.orange))
           : RefreshIndicator(
               key: _refreshIndicatorKey,
-              onRefresh:
-                  _loadEvents, // Directly call your existing data fetching method
+              onRefresh: _loadEvents,
               child: CustomScrollView(
-                // Use CustomScrollView to allow scrolling
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverToBoxAdapter(child: _buildCalendar()),
-                  _buildEventsSliverList(), // Call the correct sliver-based list builder
+                  _buildEventsSliverList(),
                 ],
               ),
             ),
@@ -331,45 +317,32 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ? FloatingActionButton(
               onPressed: () => _showAddEventDialog(),
               child: Icon(Icons.add),
-              backgroundColor: Colors.orange,
-            )
+              backgroundColor: Colors.orange)
           : null,
     );
   }
 
-// --- RENAMED AND REBUILT to return a Sliver ---
   Widget _buildEventsSliverList() {
     final selectedDayEvents = _getEventsForDay(_selectedDay!);
-
     if (selectedDayEvents.isEmpty) {
-      // For an empty list, we still use SliverToBoxAdapter to place a regular widget
       return SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.all(48.0),
-          child: Center(
-            child: Text(
-              _currentUserRole == 'Coach'
-                  ? 'No events scheduled for this day.\nTap + to add a new event.'
-                  : 'No events scheduled for this day.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
-            ),
-          ),
-        ),
+            padding: const EdgeInsets.all(48.0),
+            child: Center(
+              child: Text(
+                  _currentUserRole == 'Coach'
+                      ? 'No events scheduled for this day.\nTap + to add a new event.'
+                      : 'No events scheduled for this day.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey)),
+            )),
       );
     }
-
-    // SliverList is the correct widget to use here.
-    // It takes a "delegate" which builds the items on demand.
     return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final event = selectedDayEvents[index];
-          // We can reuse our existing card builder method
-          return _buildEventCard(event);
-        },
-        childCount: selectedDayEvents.length,
-      ),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final event = selectedDayEvents[index];
+        return _buildEventCard(event);
+      }, childCount: selectedDayEvents.length),
     );
   }
 
@@ -424,7 +397,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _buildEventCard(ScheduleEvent event) {
     final participatingPlayers = _players
-        .where((player) => event.participantIds.contains(player.id))
+        .where((player) => event.participantIds.contains(player.userId))
         .toList();
     return Card(
         margin: EdgeInsets.only(bottom: 12.0),
@@ -531,12 +504,9 @@ class _AddEventDialog extends StatefulWidget {
 }
 
 class __AddEventDialogState extends State<_AddEventDialog> {
-  // --- STATE MANAGEMENT ---
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = true; // NEW: Start in a loading state
 
-  // --- LATE VARIABLES ---
-  // These are now guaranteed to be initialized before the form is built.
+  // Form state variables
   late String eventType, title, location;
   String? opponent;
   late DateTime dateTime;
@@ -545,37 +515,21 @@ class __AddEventDialogState extends State<_AddEventDialog> {
   GoogleMapController? _mapController;
   late TextEditingController _locationController;
   Timer? _debounce;
-  GoogleMapsPlaces? _places;
-  List<Prediction> _placePredictions = [];
+
+  // --- THIS IS THE FIX ---
+  // A Future that will hold our initialized places client.
+  late Future<places_sdk.FlutterGooglePlacesSdk?> _placesSdkFuture;
+  places_sdk.FlutterGooglePlacesSdk? _places; // The actual client instance
+  List<places_sdk.AutocompletePrediction> _placePredictions = [];
   final FocusNode _locationFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    _initializeAndSetupState();
-  }
+    // Start the async initialization process.
+    _placesSdkFuture = _initializePlacesSdk();
 
-  Future<void> _initializeAndSetupState() async {
-    // This method now runs in the background.
-    String apiKey = '';
-    try {
-      // Use the correct package name for your app if it's different.
-      const MethodChannel channel =
-          MethodChannel('com.example.hoops_lab_v1/metadata');
-      apiKey = await channel.invokeMethod('getApiKey') ?? '';
-      print('--- Manually read API Key from Manifest: "$apiKey" ---');
-    } catch (e) {
-      print('--- ERROR reading API Key from Manifest: $e ---');
-    }
-
-    if (apiKey.isNotEmpty) {
-      _places = GoogleMapsPlaces(apiKey: apiKey);
-    } else {
-      print(
-          '--- WARNING: API Key is still empty. Autocomplete will not work. ---');
-    }
-
-    // Initialize all the state variables
+    // Initialize all the NON-ASYNC state variables here.
     final e = widget.event;
     eventType = e?.eventType ?? 'match';
     title = e?.title ?? '';
@@ -591,12 +545,27 @@ class __AddEventDialogState extends State<_AddEventDialog> {
         setState(() => _placePredictions = []);
       }
     });
+  }
 
-    // Once all setup is complete, turn off loading and rebuild the UI
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+  // A dedicated async method to securely get the key and create the client.
+  Future<places_sdk.FlutterGooglePlacesSdk?> _initializePlacesSdk() async {
+    try {
+      const MethodChannel channel =
+          MethodChannel('com.example.hoops_lab_v1/native_secrets');
+      final String? apiKey = await channel.invokeMethod('getMapsApiKey');
+
+      if (apiKey != null && apiKey.isNotEmpty) {
+        print('--- Successfully loaded Maps API Key from native side. ---');
+        _places = places_sdk.FlutterGooglePlacesSdk(apiKey);
+        return _places;
+      } else {
+        print(
+            '--- WARNING: Maps API Key from native side is null or empty. ---');
+        return null;
+      }
+    } catch (e) {
+      print('--- ERROR fetching Maps API Key from native: $e ---');
+      return null;
     }
   }
 
@@ -613,47 +582,24 @@ class __AddEventDialogState extends State<_AddEventDialog> {
       if (mounted) setState(() => _placePredictions = []);
       return;
     }
-
-    print('--- FETCHING PLACES for input: "$input" ---');
-
-    final response = await _places!
-        .autocomplete(input, components: [Component(Component.country, "my")]);
-
-    // --- THIS IS THE CRUCIAL DEBUGGING PART ---
-    if (response.isOkay) {
-      print(
-          'SUCCESS: Places API returned OK with ${response.predictions.length} predictions.');
-      if (mounted) {
-        setState(() {
-          _placePredictions = response.predictions;
-        });
-      }
-    } else {
-      // This will tell us exactly WHY it's failing.
-      print('ERROR: Places API call failed!');
-      print('API Response Status: ${response.status}');
-      print('API Error Message: ${response.errorMessage}');
-      if (mounted) {
-        setState(() {
-          _placePredictions = [];
-        });
-      }
-    }
-    print('-----------------------------------------');
+    final response =
+        await _places!.findAutocompletePredictions(input, countries: ['my']);
+    if (mounted) setState(() => _placePredictions = response.predictions);
   }
 
-  Future<void> _onPredictionSelected(Prediction prediction) async {
-    if (_places == null || prediction.placeId == null) return;
-
+  Future<void> _onPredictionSelected(
+      places_sdk.AutocompletePrediction prediction) async {
+    if (_places == null) return;
     _locationFocusNode.unfocus();
-
-    final details = await _places!.getDetailsByPlaceId(prediction.placeId!);
-    if (details.isOkay && details.result.geometry != null && mounted) {
-      final loc = details.result.geometry!.location;
-      final newCoords = LatLng(loc.lat, loc.lng);
-      final newAddress =
-          details.result.formattedAddress ?? prediction.description ?? '';
-
+    final detailsResponse = await _places!.fetchPlace(prediction.placeId,
+        fields: [
+          places_sdk.PlaceField.Address,
+          places_sdk.PlaceField.Location
+        ]);
+    if (detailsResponse.place != null && mounted) {
+      final place = detailsResponse.place!;
+      final newCoords = LatLng(place.latLng!.lat, place.latLng!.lng);
+      final newAddress = place.address ?? prediction.fullText;
       setState(() {
         coordinates = newCoords;
         location = newAddress;
@@ -663,6 +609,28 @@ class __AddEventDialogState extends State<_AddEventDialog> {
       _mapController
           ?.animateCamera(CameraUpdate.newLatLngZoom(newCoords, 15.0));
     }
+  }
+
+  void _onSavePressed() {
+    if (!_formKey.currentState!.validate()) return;
+    final minPlayers = eventType == 'match' ? 5 : 1;
+    if (selectedPlayerIds.length < minPlayers) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Please select at least $minPlayers player(s).')));
+      return;
+    }
+    final utcDateTime = dateTime.toUtc();
+    final newEvent = ScheduleEvent(
+        id: widget.event?.id ?? Uuid().v4(),
+        title: title,
+        dateTime: utcDateTime,
+        location: location,
+        eventType: eventType,
+        participantIds: selectedPlayerIds,
+        coordinates: coordinates,
+        opponent: eventType == 'match' ? opponent : null);
+    widget.onSave(newEvent);
+    Navigator.pop(context);
   }
 
   void _geocodeAddress(String address) async {
@@ -702,258 +670,215 @@ class __AddEventDialogState extends State<_AddEventDialog> {
     }
   }
 
-  void _onSavePressed() {
-    if (!_formKey.currentState!.validate()) return;
-
-    // Validation for minimum players
-    final minPlayers = eventType == 'match' ? 5 : 1;
-    if (selectedPlayerIds.length < minPlayers) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Please select at least $minPlayers player(s).')));
-      return;
-    }
-
-    // --- DEBUGGING PRINT STATEMENT ---
-    print("--- SAVING EVENT ---");
-    print("Local DateTime object being saved: ${dateTime.toString()}");
-    print("Is UTC: ${dateTime.isUtc}");
-    // -------------------------
-
-    final utcDateTime = dateTime.toUtc();
-
-    print("--- SAVING EVENT ---");
-    print("Local DateTime: ${dateTime.toString()}");
-    print("UTC DateTime being saved: ${utcDateTime.toString()}");
-
-    final newEvent = ScheduleEvent(
-      id: widget.event?.id ?? Uuid().v4(),
-      title: title,
-      dateTime: utcDateTime, // Pass the explicit UTC DateTime object
-      location: location,
-      eventType: eventType,
-      participantIds: selectedPlayerIds,
-      coordinates: coordinates,
-      opponent: eventType == 'match' ? opponent : null,
-    );
-    widget.onSave(newEvent);
-    Navigator.pop(context);
-  }
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(widget.event != null ? 'Edit Event' : 'Add New Event'),
-      content: _isLoading
-          ? Container(
-              height: 100,
-              child: Center(child: CircularProgressIndicator()),
-            )
-          : Container(
-              width: MediaQuery.of(context).size.width * 0.9,
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // The entire form UI is here, unchanged from the last correct version
-                      Row(children: [
-                        Expanded(
-                            child: RadioListTile<String>(
-                                title: Text('Match'),
-                                value: 'match',
-                                groupValue: eventType,
-                                onChanged: (v) =>
-                                    setState(() => eventType = v!))),
-                        Expanded(
-                            child: RadioListTile<String>(
-                                title: Text('Training'),
-                                value: 'training',
-                                groupValue: eventType,
-                                onChanged: (v) =>
-                                    setState(() => eventType = v!)))
-                      ]),
-                      TextFormField(
-                          initialValue: title,
-                          decoration: InputDecoration(
-                              labelText: 'Title', border: OutlineInputBorder()),
-                          validator: (v) =>
-                              v!.isEmpty ? 'Please enter a title' : null,
-                          onChanged: (v) => title = v),
-                      SizedBox(height: 16),
-                      Text('Date & Time'),
-                      Row(children: [
-                        Expanded(
-                            child: Text(DateFormat('EEE, MMM d, yyyy')
-                                .format(dateTime))),
-                        TextButton(
-                            child: Text('Change'),
-                            onPressed: () async {
-                              final newDate = await showDatePicker(
-                                  context: context,
-                                  initialDate: dateTime,
-                                  firstDate: DateTime(2020),
-                                  lastDate: DateTime(2030));
-                              if (newDate != null) {
-                                setState(() {
-                                  // Reconstruct the DateTime object in the local timezone
-                                  dateTime = DateTime(
-                                      newDate.year,
-                                      newDate.month,
-                                      newDate.day,
-                                      dateTime.hour,
-                                      dateTime.minute);
-                                });
-                              }
-                            })
-                      ]),
-                      Row(children: [
-                        Expanded(
-                            child: Text(TimeOfDay.fromDateTime(dateTime)
-                                .format(context))),
-                        TextButton(
-                            child: Text('Change'),
-                            onPressed: () async {
-                              final newTime = await showTimePicker(
-                                  context: context,
-                                  initialTime:
-                                      TimeOfDay.fromDateTime(dateTime));
-                              if (newTime != null) {
-                                setState(() {
-                                  // Reconstruct the DateTime object in the local timezone
-                                  dateTime = DateTime(
-                                      dateTime.year,
-                                      dateTime.month,
-                                      dateTime.day,
-                                      newTime.hour,
-                                      newTime.minute);
-                                });
-                              }
-                            })
-                      ]),
-                      SizedBox(height: 16),
-                      TextFormField(
-                          controller: _locationController,
-                          focusNode: _locationFocusNode,
-                          decoration: InputDecoration(
-                              labelText: 'Location',
-                              border: OutlineInputBorder()),
-                          validator: (v) =>
-                              v!.isEmpty ? 'Please enter a location' : null,
-                          onChanged: (value) {
-                            location = value;
-                            if (_debounce?.isActive ?? false)
-                              _debounce!.cancel();
-                            _debounce =
-                                Timer(const Duration(milliseconds: 700), () {
-                              _fetchPlacePredictions(value);
-                              _geocodeAddress(value);
-                            });
-                          }),
-                      if (_placePredictions.isNotEmpty)
-                        SizedBox(
-                            height: 150,
-                            child: ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: _placePredictions.length,
-                                itemBuilder: (context, index) {
-                                  final prediction = _placePredictions[index];
-                                  return ListTile(
-                                      title: Text(prediction.description ?? ''),
-                                      onTap: () =>
-                                          _onPredictionSelected(prediction));
-                                })),
-                      SizedBox(height: 16),
-                      Text('Location on Map (Tap to select)'),
-                      SizedBox(height: 8),
-                      Container(
-                          height: 200,
-                          decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey)),
-                          child: GoogleMap(
-                              initialCameraPosition: CameraPosition(
-                                  target:
-                                      coordinates ?? LatLng(3.1390, 101.6869),
-                                  zoom: 14),
-                              markers: coordinates != null
-                                  ? {
-                                      Marker(
-                                          markerId: MarkerId('selected'),
-                                          position: coordinates!)
-                                    }
-                                  : {},
-                              onMapCreated: (controller) =>
-                                  _mapController = controller,
-                              onTap: (position) {
-                                setState(() => coordinates = position);
-                                _reverseGeocode(position);
-                              })),
-                      SizedBox(height: 16),
-                      if (eventType == 'match') ...[
-                        TextFormField(
-                            initialValue: opponent,
-                            decoration: InputDecoration(
-                                labelText: 'Opponent Team',
-                                border: OutlineInputBorder()),
-                            onChanged: (v) => opponent = v),
-                        SizedBox(height: 16)
-                      ],
-                      Text('Select Players (at least 5)',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text('${selectedPlayerIds.length} selected',
-                          style: TextStyle(
-                              color: selectedPlayerIds.length >= 5
-                                  ? Colors.green
-                                  : Colors.red)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            child: Text("Select All"),
-                            onPressed: () {
-                              setState(() {
-                                selectedPlayerIds =
-                                    widget.players.map((p) => p.id).toList();
-                              });
-                            },
-                          ),
-                          TextButton(
-                            child: Text("Deselect All"),
-                            onPressed: () {
-                              setState(() {
-                                selectedPlayerIds = [];
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                      Container(
-                          height: 200,
-                          decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey)),
-                          child: ListView.builder(
-                              itemCount: widget.players.length,
-                              itemBuilder: (context, index) {
-                                final player = widget.players[index];
-                                final isSelected =
-                                    selectedPlayerIds.contains(player.id);
-                                return CheckboxListTile(
-                                    title: Text(player.name ?? 'Unknown'),
-                                    subtitle: Text(player.position ?? 'N/A'),
-                                    value: isSelected,
-                                    onChanged: (selected) => setState(() {
-                                          if (selected!)
-                                            selectedPlayerIds.add(player.id);
-                                          else
-                                            selectedPlayerIds.remove(player.id);
-                                        }));
-                              })),
-                    ],
+      content: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Expanded(
+                      child: RadioListTile<String>(
+                          title: Text('Match'),
+                          value: 'match',
+                          groupValue: eventType,
+                          onChanged: (v) => setState(() => eventType = v!))),
+                  Expanded(
+                      child: RadioListTile<String>(
+                          title: Text('Training'),
+                          value: 'training',
+                          groupValue: eventType,
+                          onChanged: (v) => setState(() => eventType = v!)))
+                ]),
+                TextFormField(
+                    initialValue: title,
+                    decoration: InputDecoration(
+                        labelText: 'Title', border: OutlineInputBorder()),
+                    validator: (v) =>
+                        v!.isEmpty ? 'Please enter a title' : null,
+                    onChanged: (v) => title = v),
+                SizedBox(height: 16),
+                Text('Date & Time'),
+                Row(children: [
+                  Expanded(
+                      child: Text(
+                          DateFormat('EEE, MMM d, yyyy').format(dateTime))),
+                  TextButton(
+                      child: Text('Change'),
+                      onPressed: () async {
+                        final newDate = await showDatePicker(
+                            context: context,
+                            initialDate: dateTime,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2030));
+                        if (newDate != null)
+                          setState(() => dateTime = DateTime(
+                              newDate.year,
+                              newDate.month,
+                              newDate.day,
+                              dateTime.hour,
+                              dateTime.minute));
+                      })
+                ]),
+                Row(children: [
+                  Expanded(
+                      child: Text(
+                          TimeOfDay.fromDateTime(dateTime).format(context))),
+                  TextButton(
+                      child: Text('Change'),
+                      onPressed: () async {
+                        final newTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(dateTime));
+                        if (newTime != null)
+                          setState(() => dateTime = DateTime(
+                              dateTime.year,
+                              dateTime.month,
+                              dateTime.day,
+                              newTime.hour,
+                              newTime.minute));
+                      })
+                ]),
+                FutureBuilder<places_sdk.FlutterGooglePlacesSdk?>(
+                  future: _placesSdkFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                          child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text("Initializing location service...")));
+                    }
+                    if (snapshot.hasError ||
+                        !snapshot.hasData ||
+                        snapshot.data == null) {
+                      return Text(
+                          "Error: Could not initialize location service. Please check your API key.",
+                          style: TextStyle(color: Colors.red));
+                    }
+
+                    // Once the future is complete, we build the real text field.
+                    return TextFormField(
+                      controller: _locationController,
+                      focusNode: _locationFocusNode,
+                      decoration: InputDecoration(
+                          labelText: 'Location', border: OutlineInputBorder()),
+                      validator: (v) =>
+                          v!.isEmpty ? 'Please enter a location' : null,
+                      onChanged: (value) {
+                        location = value;
+                        if (_debounce?.isActive ?? false) _debounce!.cancel();
+                        _debounce = Timer(const Duration(milliseconds: 500),
+                            () => _fetchPlacePredictions(value));
+                      },
+                    );
+                  },
+                ),
+                if (_placePredictions.isNotEmpty)
+                  SizedBox(
+                    height: 150,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _placePredictions.length,
+                      itemBuilder: (context, index) {
+                        final prediction = _placePredictions[index];
+                        return ListTile(
+                          title: Text(prediction.fullText),
+                          onTap: () => _onPredictionSelected(prediction),
+                        );
+                      },
+                    ),
+                  ),
+                SizedBox(height: 16),
+                Text('Location on Map (Tap to select)'),
+                SizedBox(height: 8),
+                Container(
+                  height: 200,
+                  decoration:
+                      BoxDecoration(border: Border.all(color: Colors.grey)),
+                  child: GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                        target: coordinates ?? LatLng(3.1390, 101.6869),
+                        zoom: 14),
+                    markers: coordinates != null
+                        ? {
+                            Marker(
+                                markerId: MarkerId('selected'),
+                                position: coordinates!)
+                          }
+                        : {},
+                    onMapCreated: (controller) => _mapController = controller,
+                    onTap: (position) {
+                      setState(() => coordinates = position);
+                      _reverseGeocode(position);
+                    },
                   ),
                 ),
-              ),
+                SizedBox(height: 16),
+                if (eventType == 'match') ...[
+                  TextFormField(
+                      initialValue: opponent,
+                      decoration: InputDecoration(
+                          labelText: 'Opponent Team',
+                          border: OutlineInputBorder()),
+                      onChanged: (v) => opponent = v),
+                  SizedBox(height: 16)
+                ],
+                Text('Select Players'),
+                Text('${selectedPlayerIds.length} selected',
+                    style: TextStyle(
+                        color: selectedPlayerIds.length >=
+                                (eventType == 'match' ? 5 : 1)
+                            ? Colors.green
+                            : Colors.red)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                        child: Text("Select All"),
+                        onPressed: () => setState(() => selectedPlayerIds =
+                            widget.players.map((p) => p.userId).toList())),
+                    TextButton(
+                        child: Text("Deselect All"),
+                        onPressed: () =>
+                            setState(() => selectedPlayerIds = [])),
+                  ],
+                ),
+                Container(
+                  height: 200,
+                  decoration:
+                      BoxDecoration(border: Border.all(color: Colors.grey)),
+                  child: ListView.builder(
+                    itemCount: widget.players.length,
+                    itemBuilder: (context, index) {
+                      final player = widget.players[index];
+                      final isSelected =
+                          selectedPlayerIds.contains(player.userId);
+                      return CheckboxListTile(
+                        title: Text(player.name ?? 'Unknown'),
+                        subtitle: Text(player.position ?? 'N/A'),
+                        value: isSelected,
+                        onChanged: (selected) => setState(() {
+                          if (selected!)
+                            selectedPlayerIds.add(player.userId);
+                          else
+                            selectedPlayerIds.remove(player.userId);
+                        }),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
+          ),
+        ),
+      ),
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context), child: Text('Cancel')),

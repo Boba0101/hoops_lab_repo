@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">OK</string>
     <string msgid="6573031135582639649" name="not_set">"ସେଟ୍ ହୋଇନାହିଁ"</string>
     <string name="password_toggle_content_description">ପାସ୍‍ୱାର୍ଡ ଦେଖାନ୍ତୁ</string>
+    <string name="places_autocomplete_clear_button">ସର୍ଚ୍ଚ ଖାଲି କରନ୍ତୁ</string>
+    <string name="places_autocomplete_label">ଗୋଟିଏ ସ୍ଥାନ ବାଛନ୍ତୁ</string>
+    <string name="places_autocomplete_no_results_for_query">%1$s ପାଇଁ କୌଣସି ଫଳାଫଳ ନାହିଁ</string>
+    <string name="places_autocomplete_search_hint">Search a place</string>
+    <string name="places_cancel">ବାତିଲ୍ କରନ୍ତୁ</string>
+    <string name="places_powered_by_google">Google ଦ୍ଵାରା ପରିଚାଳିତ</string>
+    <string name="places_search_error">ସନ୍ଧାନ ଫଳାଫଳଗୁଡ଼ିକ ଲୋଡ୍‌ କରିହେଉନାହିଁ</string>
+    <string name="places_try_again">ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" କ୍ଲିପବୋର୍ଡକୁ କପି ହୋ‍ଇଗଲା।"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"ସର୍ଚ୍ଚ କରନ୍ତୁ"</string>
     <string name="searchview_clear_text_content_description">Clear text</string>

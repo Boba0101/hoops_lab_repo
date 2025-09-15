@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">Во ред</string>
     <string msgid="6573031135582639649" name="not_set">"Не е поставено"</string>
     <string name="password_toggle_content_description">Прикажи ја лозинката</string>
+    <string name="places_autocomplete_clear_button">Исчисти го пребарувањето</string>
+    <string name="places_autocomplete_label">Одберете место</string>
+    <string name="places_autocomplete_no_results_for_query">Нема резултати за %1$s</string>
+    <string name="places_autocomplete_search_hint">Пребарај место</string>
+    <string name="places_cancel">Откажи</string>
+    <string name="places_powered_by_google">Овозможено од Google</string>
+    <string name="places_search_error">Не може да се вчитаат резултати од пребарувањето.</string>
+    <string name="places_try_again">Пробај пак</string>
     <string msgid="6685851473431805375" name="preference_copied">"„<ns1:g id="SUMMARY">%1$s</ns1:g>“ копирано во привремена меморија."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Пребарување"</string>
     <string name="searchview_clear_text_content_description">Бришење на текстот</string>

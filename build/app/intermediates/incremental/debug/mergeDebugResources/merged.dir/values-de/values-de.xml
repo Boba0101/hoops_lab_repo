@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">OK</string>
     <string msgid="6573031135582639649" name="not_set">"Nicht festgelegt"</string>
     <string name="password_toggle_content_description">Passwort anzeigen</string>
+    <string name="places_autocomplete_clear_button">Suche löschen</string>
+    <string name="places_autocomplete_label">Ort auswählen</string>
+    <string name="places_autocomplete_no_results_for_query">Keine Ergebnisse für \"%1$s\"</string>
+    <string name="places_autocomplete_search_hint">Ort suchen</string>
+    <string name="places_cancel">Abbrechen</string>
+    <string name="places_powered_by_google">Powered by Google</string>
+    <string name="places_search_error">Suchergebnisse können nicht geladen werden.</string>
+    <string name="places_try_again">Noch einmal</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" in Zwischenablage kopiert."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Suche"</string>
     <string name="searchview_clear_text_content_description">Text löschen</string>

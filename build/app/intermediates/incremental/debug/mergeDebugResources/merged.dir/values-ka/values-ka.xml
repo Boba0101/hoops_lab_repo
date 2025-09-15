@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">კარგი</string>
     <string msgid="6573031135582639649" name="not_set">"არ არის დაყენებული"</string>
     <string name="password_toggle_content_description">პაროლის ჩვენება</string>
+    <string name="places_autocomplete_clear_button">ძიების გასუფთავება</string>
+    <string name="places_autocomplete_label">აირჩიეთ ადგილი</string>
+    <string name="places_autocomplete_no_results_for_query">მოთხოვნაზე %1$s შედეგები არ არის</string>
+    <string name="places_autocomplete_search_hint">ადგილის ძებნა</string>
+    <string name="places_cancel">გაუქმება</string>
+    <string name="places_powered_by_google">მხარდაჭერილია Google-ის მიერ</string>
+    <string name="places_search_error">ძიების შედეგების ჩატვირთვა ვერ ხერხდება.</string>
+    <string name="places_try_again">ხელახლა ცდა</string>
     <string msgid="6685851473431805375" name="preference_copied">"„<ns1:g id="SUMMARY">%1$s</ns1:g>“ კოპირებულია გაცვლის ბუფერში."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"ძიება"</string>
     <string name="searchview_clear_text_content_description">ტექსტის გასუფთავება</string>

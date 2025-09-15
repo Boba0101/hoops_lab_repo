@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.hoops_lab_v1.app-mergeDebugResources-58:/values-en-rXC/values-en-rXC.xml",
+            "outputFile": "com.example.hoops_lab_v1.app-mergeDebugResources-59:/values-en-rXC/values-en-rXC.xml",
             "map": [
                 {
                     "source": "C:\\Users\\weiji\\.gradle\\caches\\8.14\\transforms\\38b5df4631d84d6a9b6b9d861ef28d0d\\transformed\\browser-1.4.0\\res\\values-en-rXC\\values-en-rXC.xml",

@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">సరే</string>
     <string msgid="6573031135582639649" name="not_set">"సెట్ చేయలేదు"</string>
     <string name="password_toggle_content_description">పాస్‌వర్డ్‌ను చూపు</string>
+    <string name="places_autocomplete_clear_button">సెర్చ్‌ను తీసేయండి</string>
+    <string name="places_autocomplete_label">ఒక స్థలాన్ని ఎంచుకోండి</string>
+    <string name="places_autocomplete_no_results_for_query">%1$s కోసం ఎలాంటి ఫలితాలు లేవు</string>
+    <string name="places_autocomplete_search_hint">స్థలాన్ని సెర్చ్ చేయండి</string>
+    <string name="places_cancel">రద్దు చేయండి</string>
+    <string name="places_powered_by_google">Google సౌజన్యంతో</string>
+    <string name="places_search_error">సెర్చ్‌ ఫలితాలను లోడ్ చేయడం సాధ్యపడదు.</string>
+    <string name="places_try_again">మళ్లీ ప్రయత్నించు</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" క్లిప్‌బోర్డ్‌కి కాపీ చేయబడింది."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"సెర్చ్"</string>
     <string name="searchview_clear_text_content_description">టెక్స్ట్‌ను క్లియర్ చేయండి</string>

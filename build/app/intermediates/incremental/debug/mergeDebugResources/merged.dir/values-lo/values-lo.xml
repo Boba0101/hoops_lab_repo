@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">ຕົກລົງ</string>
     <string msgid="6573031135582639649" name="not_set">"ບໍ່ໄດ້ຕັ້ງຄ່າ"</string>
     <string name="password_toggle_content_description">ສະແດງລະຫັດຜ່ານ</string>
+    <string name="places_autocomplete_clear_button">ລຶບການຊອກຫາ</string>
+    <string name="places_autocomplete_label">ເລືອກສະຖານທີ່ໃດໜຶ່ງ</string>
+    <string name="places_autocomplete_no_results_for_query">ບໍ່ມີຜົນການຊອກຫາສຳລັບ %1$s</string>
+    <string name="places_autocomplete_search_hint">ຊອກຫາສະຖານທີ່</string>
+    <string name="places_cancel">ຍົກເລີກ</string>
+    <string name="places_powered_by_google">ຂັບເຄື່ອນໂດຍ Google</string>
+    <string name="places_search_error">ບໍ່ສາມາດໂຫລດຜົນການຊອກຫາໄດ້.</string>
+    <string name="places_try_again">ລອງໃໝ່</string>
     <string msgid="6685851473431805375" name="preference_copied">"ສຳເນົາ \"<ns1:g id="SUMMARY">%1$s</ns1:g>\" ໄປໃສ່ຄລິບບອດແລ້ວ."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"ຊອກຫາ"</string>
     <string name="searchview_clear_text_content_description">ລຶບລ້າງຂໍ້ຄວາມ</string>

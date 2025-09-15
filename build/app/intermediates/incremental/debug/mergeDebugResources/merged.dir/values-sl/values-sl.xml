@@ -151,6 +151,14 @@
     <string name="mtrl_timepicker_confirm">V redu</string>
     <string msgid="6573031135582639649" name="not_set">"Ni nastavljeno"</string>
     <string name="password_toggle_content_description">Prikaz gesla</string>
+    <string name="places_autocomplete_clear_button">Počisti iskanje</string>
+    <string name="places_autocomplete_label">Izbira mesta</string>
+    <string name="places_autocomplete_no_results_for_query">Za %1$s ni rezultatov</string>
+    <string name="places_autocomplete_search_hint">Poiščite mesto.</string>
+    <string name="places_cancel">Prekliči</string>
+    <string name="places_powered_by_google">Uporablja tehnologijo Google</string>
+    <string name="places_search_error">Rezultatov iskanja ni mogoče naložiti.</string>
+    <string name="places_try_again">Poskusi znova</string>
     <string msgid="6685851473431805375" name="preference_copied">"»<ns1:g id="SUMMARY">%1$s</ns1:g>« je bilo kopirano v odložišče."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Iskanje"</string>
     <string name="searchview_clear_text_content_description">Počisti besedilo</string>

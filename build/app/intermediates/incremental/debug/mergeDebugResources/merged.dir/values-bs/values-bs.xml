@@ -150,6 +150,14 @@
     <string name="mtrl_timepicker_confirm">Uredu</string>
     <string msgid="6573031135582639649" name="not_set">"Nije postavljeno"</string>
     <string name="password_toggle_content_description">Prikaži lozinku</string>
+    <string name="places_autocomplete_clear_button">Obriši pretraživanje</string>
+    <string name="places_autocomplete_label">Izbor mjesta</string>
+    <string name="places_autocomplete_no_results_for_query">Nije pronađen nijedan rezultat za upit \"%1$s\"</string>
+    <string name="places_autocomplete_search_hint">Pretražite mjesto</string>
+    <string name="places_cancel">Otkaži</string>
+    <string name="places_powered_by_google">Omogućava Google</string>
+    <string name="places_search_error">Nije moguće učitati rezultate pretraživanja.</string>
+    <string name="places_try_again">Pokušaj ponovo</string>
     <string msgid="6685851473431805375" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" kopirano u međumemoriju."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Pretražite"</string>
     <string name="searchview_clear_text_content_description">Brisanje teksta</string>

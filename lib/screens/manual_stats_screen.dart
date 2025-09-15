@@ -4,9 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-// --- CORRECT, VERIFIED IMPORTS ---
 import '../models/user.dart';
-import '../models/game_stats.dart'; // This line defines PlayerGameStats
+import '../models/game_stats.dart';
 import '../services/firebase_service.dart';
 import 'schedule_screen.dart' as app_event;
 
@@ -19,7 +18,7 @@ class ManualStatsScreen extends StatefulWidget {
     Key? key,
     required this.event,
     required this.participants,
-    this.existingStats, // Make it available in the constructor
+    this.existingStats,
   }) : super(key: key);
 
   @override
@@ -27,46 +26,47 @@ class ManualStatsScreen extends StatefulWidget {
 }
 
 class _ManualStatsScreenState extends State<ManualStatsScreen> {
-  // The analyzer can now find 'PlayerGameStats' because of the import above.
   late Map<String, PlayerGameStats> _statsMap;
   bool _isLoading = false;
-
-  //controller for opponent score
   late TextEditingController _opponentScoreController;
 
   @override
   void initState() {
     super.initState();
+    _opponentScoreController = TextEditingController(
+        text: widget.event.opponentScore?.toString() ?? '');
 
-    _opponentScoreController = TextEditingController();
-
-    if (widget.existingStats != null) {
-      // Create a map from the list of existing stats
+    if (widget.existingStats != null && widget.existingStats!.isNotEmpty) {
       _statsMap = {for (var stat in widget.existingStats!) stat.userId: stat};
     } else {
-      // This is the original logic for adding new stats
       _statsMap = {
         for (var p in widget.participants)
-          p.id: PlayerGameStats(
-            id: '', // Will be set on save
+          p.userId: PlayerGameStats(
+            id: '',
             eventId: widget.event.id,
-            userId: p.id,
+            userId: p.userId,
             playerName: p.name ?? 'Unknown',
             quarters: {},
+            // --- THIS IS THE DEFINITIVE FIX ---
+            // We now use the exact dateTime from the original scheduled event.
+            eventDateTime: widget.event.dateTime,
           )
       };
     }
   }
 
+  @override
+  void dispose() {
+    _opponentScoreController.dispose();
+    super.dispose();
+  }
+
   Future<void> _saveAllStats() async {
-    // Validate the opponent score field manually
     final opponentScore = int.tryParse(_opponentScoreController.text);
     if (widget.event.eventType == 'match' && opponentScore == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Please enter the opponent\'s score.'),
-            backgroundColor: Colors.red),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Please enter the opponent\'s score.'),
+          backgroundColor: Colors.red));
       return;
     }
 
@@ -75,15 +75,10 @@ class _ManualStatsScreenState extends State<ManualStatsScreen> {
         Provider.of<FirebaseService>(context, listen: false);
 
     try {
-      // Calculate our team's total score
       int ourTotalScore =
           _statsMap.values.fold(0, (sum, stat) => sum + stat.totals.pts);
-
-      // Save the individual player stats (this is unchanged)
       final statsToSave = _statsMap.values.toList();
       await firebaseService.saveStatsForEvent(widget.event.id, statsToSave);
-
-      // NEW: Update the event document itself with the final score
       await FirebaseFirestore.instance
           .collection('scheduleEvents')
           .doc(widget.event.id)
@@ -93,25 +88,19 @@ class _ManualStatsScreenState extends State<ManualStatsScreen> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Stats and score saved successfully!'),
-              backgroundColor: Colors.green),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Stats and score saved successfully!'),
+            backgroundColor: Colors.green));
         Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Error saving data: $e'),
-              backgroundColor: Colors.red),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Error saving data: $e'),
+            backgroundColor: Colors.red));
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -121,10 +110,12 @@ class _ManualStatsScreenState extends State<ManualStatsScreen> {
       MaterialPageRoute(
         builder: (context) => _EditPlayerStatsForm(
           player: player,
-          initialStats: _statsMap[player.id]!.totals,
+          // Use the correct userId for the map key
+          initialStats: _statsMap[player.userId]!.totals,
           onSave: (updatedTotals) {
             setState(() {
-              _statsMap[player.id]!.totals = updatedTotals;
+              // Use the correct userId for the map key
+              _statsMap[player.userId]!.totals = updatedTotals;
             });
           },
         ),
@@ -136,37 +127,33 @@ class _ManualStatsScreenState extends State<ManualStatsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Stats for ${widget.event.title}'),
-        actions: [
-          IconButton(
-              icon: Icon(Icons.save),
-              onPressed: _isLoading ? null : _saveAllStats)
-        ],
-      ),
+          title: Text('Add Stats for ${widget.event.title}'),
+          actions: [
+            IconButton(
+                icon: Icon(Icons.save),
+                onPressed: _isLoading ? null : _saveAllStats)
+          ]),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // --- NEW: OPPONENT SCORE INPUT ---
                 if (widget.event.eventType == 'match')
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: TextField(
-                      controller: _opponentScoreController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Opponent Score',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
+                        controller: _opponentScoreController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                            labelText: 'Opponent Score',
+                            border: OutlineInputBorder())),
                   ),
-                // The list of players to edit
                 Expanded(
                   child: ListView.builder(
                     itemCount: widget.participants.length,
                     itemBuilder: (context, index) {
                       final player = widget.participants[index];
-                      final playerStats = _statsMap[player.id]!.totals;
+                      // Use the correct userId for the map key
+                      final playerStats = _statsMap[player.userId]!.totals;
                       return ListTile(
                         title: Text(player.name ?? 'Unknown Player'),
                         subtitle: Text(

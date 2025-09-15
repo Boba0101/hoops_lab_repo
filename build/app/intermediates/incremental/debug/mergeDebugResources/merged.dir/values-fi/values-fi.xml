@@ -149,6 +149,14 @@
     <string name="mtrl_timepicker_confirm">OK</string>
     <string msgid="6573031135582639649" name="not_set">"Ei asetettu"</string>
     <string name="password_toggle_content_description">Näytä salasana</string>
+    <string name="places_autocomplete_clear_button">Tyhjennä haku</string>
+    <string name="places_autocomplete_label">Valitse paikka</string>
+    <string name="places_autocomplete_no_results_for_query">Ei tuloksia haulle %1$s</string>
+    <string name="places_autocomplete_search_hint">Hae paikkaa</string>
+    <string name="places_cancel">Peru</string>
+    <string name="places_powered_by_google">Palvelun tarjoaa Google</string>
+    <string name="places_search_error">Hakutuloksia ei voi ladata.</string>
+    <string name="places_try_again">Yritä uudelleen</string>
     <string msgid="6685851473431805375" name="preference_copied">"<ns1:g id="SUMMARY">%1$s</ns1:g> kopioitiin leikepöydälle."</string>
     <string msgid="6264217191555673260" name="search_menu_title">"Haku"</string>
     <string name="searchview_clear_text_content_description">Tyhjennä teksti</string>
