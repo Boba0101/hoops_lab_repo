@@ -3,28 +3,32 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
 
 import '../models/team_stats_summary.dart';
 import '../models/game_stats.dart';
 import '../models/user.dart';
-
 import '../services/auth_service.dart';
 import '../services/firebase_service.dart';
-
 import '../widgets/performance_trend_chart.dart';
 import '../widgets/game_log_table.dart';
+import 'player_analytics_screen.dart';
 
+// A data bundle specifically for the Player's Dashboard
 class _PlayerDashboardData {
   final PlayerSeasonAverage myAverages;
   final List<PlayerGameStats> myGameLog;
   final List<FlSpot> myPerformanceTrend;
   final TeamStatsSummary teamSummaryForContext;
+  final PlayerGameStats? lastGameStats;
 
   _PlayerDashboardData({
     required this.myAverages,
     required this.myGameLog,
     required this.myPerformanceTrend,
     required this.teamSummaryForContext,
+    this.lastGameStats,
   });
 }
 
@@ -36,26 +40,73 @@ class TeamDashboardScreen extends StatefulWidget {
 }
 
 class _TeamDashboardScreenState extends State<TeamDashboardScreen> {
-  late Future<TeamStatsSummary> _summaryFuture;
-  late Future<User?> _userFuture;
+  late Future<dynamic> _dashboardDataFuture;
+  User? _currentUser;
 
   @override
   void initState() {
     super.initState();
+    _dashboardDataFuture = _fetchDashboardData();
+  }
+
+  Future<dynamic> _fetchDashboardData() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
     final firebaseService =
         Provider.of<FirebaseService>(context, listen: false);
-    final authService = Provider.of<AuthService>(context, listen: false);
-    _summaryFuture = firebaseService.getTeamStatsSummary();
-    _userFuture = firebaseService.getUserById(authService.currentUser!.uid);
+
+    _currentUser =
+        await firebaseService.getUserById(authService.currentUser!.uid);
+
+    if (_currentUser?.role == 'Coach') {
+      return firebaseService.getTeamStatsSummary();
+    } else if (_currentUser != null) {
+      return _loadPlayerData(firebaseService, _currentUser!.userId);
+    } else {
+      throw Exception("User not found or role is not defined.");
+    }
+  }
+
+  Future<_PlayerDashboardData> _loadPlayerData(
+      FirebaseService service, String userId) async {
+    final teamSummary = await service.getTeamStatsSummary();
+    final myGameLog = await service.getStatsForPlayer(userId);
+
+    final myAverages = teamSummary.allPlayerAverages.firstWhere(
+      (p) => p.player.userId == userId,
+      orElse: () => PlayerSeasonAverage(player: _currentUser!),
+    );
+
+    final recentGames = myGameLog.take(10).toList().reversed.toList();
+    final trendData = recentGames.asMap().entries.map((e) {
+      return FlSpot(
+          e.key.toDouble(), _calculatePerformanceScore(e.value.totals));
+    }).toList();
+
+    final PlayerGameStats? lastGame =
+        myGameLog.isNotEmpty ? myGameLog.first : null;
+
+    return _PlayerDashboardData(
+      myAverages: myAverages,
+      myGameLog: myGameLog,
+      myPerformanceTrend: trendData,
+      teamSummaryForContext: teamSummary,
+      lastGameStats: lastGame,
+    );
+  }
+
+  double _calculatePerformanceScore(StatSet stats) {
+    return (stats.pts + stats.reb + stats.ast + stats.stl + stats.blk)
+            .toDouble() -
+        ((stats.fga - stats.fgm) + (stats.fta - stats.ftm) + stats.tov)
+            .toDouble();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder(
-        // Use a Future.wait to load both the summary and the user role simultaneously
-        future: Future.wait([_summaryFuture, _userFuture]),
-        builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
+      body: FutureBuilder<dynamic>(
+        future: _dashboardDataFuture,
+        builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
@@ -67,21 +118,16 @@ class _TeamDashboardScreenState extends State<TeamDashboardScreen> {
             return Center(child: Text("No data available."));
           }
 
-          final summaryData = snapshot.data![0] as TeamStatsSummary;
-          final currentUser = snapshot.data![1] as User?;
-
           return RefreshIndicator(
             onRefresh: () {
-              final firebaseService =
-                  Provider.of<FirebaseService>(context, listen: false);
               setState(() {
-                _summaryFuture = firebaseService.getTeamStatsSummary();
+                _dashboardDataFuture = _fetchDashboardData();
               });
-              return _summaryFuture;
+              return _dashboardDataFuture;
             },
-            child: (currentUser?.role == 'Coach')
-                ? _buildCoachLayout(summaryData)
-                : _buildPlayerLayout(summaryData, currentUser?.userId),
+            child: (_currentUser?.role == 'Coach')
+                ? _buildCoachLayout(snapshot.data as TeamStatsSummary)
+                : _buildPlayerLayout(snapshot.data as _PlayerDashboardData),
           );
         },
       ),
@@ -91,11 +137,17 @@ class _TeamDashboardScreenState extends State<TeamDashboardScreen> {
   // --- COACH DASHBOARD UI ---
   Widget _buildCoachLayout(TeamStatsSummary summary) {
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.all(16),
       children: [
         _buildRecordAndAveragesCard(summary),
         SizedBox(height: 24),
-        _buildPerformanceTrendChart(summary),
+        PerformanceTrendChart(
+            trendData: summary.recentScores
+                .asMap()
+                .entries
+                .map((e) => FlSpot(e.key.toDouble(), e.value))
+                .toList()),
         SizedBox(height: 24),
         _buildPlayerLeaderboard(summary),
         SizedBox(height: 24),
@@ -104,31 +156,26 @@ class _TeamDashboardScreenState extends State<TeamDashboardScreen> {
     );
   }
 
-  // --- PLAYER DASHBOARD UI ---
-  Widget _buildPlayerLayout(TeamStatsSummary summary, String? currentUserId) {
-    // Find the current player's personal stats from the summary
-    final myStats = summary.allPlayerAverages.firstWhere(
-      (p) => p.player.userId == currentUserId,
-      orElse: () => PlayerSeasonAverage(
-          player: User(
-              userId: '',
-              email: '',
-              role: 'Player',
-              createdAt: DateTime.now())),
-    );
-
+  // --- PLAYER DASHBOARD UI (UPGRADED) ---
+  Widget _buildPlayerLayout(_PlayerDashboardData data) {
     return ListView(
       padding: EdgeInsets.all(16),
+      physics: const AlwaysScrollableScrollPhysics(),
       children: [
-        _buildPersonalAveragesCard(myStats),
+        _buildPersonalAveragesCard(data.myAverages),
         SizedBox(height: 24),
-        // TODO: Implement Player-specific trend chart
-        _buildTeamAveragesContextCard(summary),
+        _buildRecentVsOverallCard(data.lastGameStats, data.myAverages),
+        SizedBox(height: 24),
+        PerformanceTrendChart(trendData: data.myPerformanceTrend),
+        SizedBox(height: 24),
+        GameLogTable(gameLog: data.myGameLog),
+        SizedBox(height: 24),
+        _buildTeamAveragesContextCard(data.teamSummaryForContext),
       ],
     );
   }
 
-  // --- SHARED & COACH-SPECIFIC WIDGETS ---
+  // --- WIDGET BUILDER METHODS ---
 
   Widget _buildRecordAndAveragesCard(TeamStatsSummary summary) {
     return Card(
@@ -147,49 +194,6 @@ class _TeamDashboardScreenState extends State<TeamDashboardScreen> {
                 _buildStatItem(summary.teamRpg.toStringAsFixed(1), "RPG"),
                 _buildStatItem(summary.teamApg.toStringAsFixed(1), "APG"),
               ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPerformanceTrendChart(TeamStatsSummary summary) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Recent Scoring Trend",
-                style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 24),
-            SizedBox(
-              height: 200,
-              child: LineChart(
-                LineChartData(
-                  gridData: FlGridData(show: true),
-                  titlesData: FlTitlesData(
-                    rightTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  borderData: FlBorderData(show: true),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: summary.recentScores.asMap().entries.map((e) {
-                        return FlSpot(e.key.toDouble(), e.value);
-                      }).toList(),
-                      isCurved: true,
-                      color: Colors.orange,
-                      barWidth: 4,
-                      belowBarData: BarAreaData(
-                          show: true, color: Colors.orange.withOpacity(0.3)),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -225,13 +229,22 @@ class _TeamDashboardScreenState extends State<TeamDashboardScreen> {
       String Function(PlayerSeasonAverage) getStat) {
     if (player == null)
       return ListTile(title: Text(category), subtitle: Text("N/A"));
-    return ListTile(
-      title: Text(category, style: TextStyle(fontWeight: FontWeight.bold)),
-      leading: Icon(Icons.star, color: Colors.amber),
-      trailing: Text(getStat(player),
-          style: TextStyle(
-              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.orange)),
-      subtitle: Text(player.player.name ?? 'Unknown'),
+    return InkWell(
+      onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  PlayerAnalyticsScreen(player: player.player))),
+      child: ListTile(
+        title: Text(category, style: TextStyle(fontWeight: FontWeight.bold)),
+        leading: Icon(Icons.star, color: Colors.amber),
+        trailing: Text(getStat(player),
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.orange)),
+        subtitle: Text(player.player.name ?? 'Unknown'),
+      ),
     );
   }
 
@@ -273,8 +286,6 @@ class _TeamDashboardScreenState extends State<TeamDashboardScreen> {
     );
   }
 
-  // --- PLAYER-SPECIFIC WIDGETS ---
-
   Widget _buildPersonalAveragesCard(PlayerSeasonAverage myStats) {
     return Card(
       color: Colors.orange.withOpacity(0.2),
@@ -299,6 +310,84 @@ class _TeamDashboardScreenState extends State<TeamDashboardScreen> {
     );
   }
 
+  Widget _buildRecentVsOverallCard(
+      PlayerGameStats? lastGame, PlayerSeasonAverage averages) {
+    if (lastGame == null) {
+      return SizedBox.shrink();
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Last Game vs. Season Average",
+                style: Theme.of(context).textTheme.titleLarge),
+            SizedBox(height: 16),
+            _buildComparisonRow(
+                "Points", lastGame.totals.pts.toDouble(), averages.ppg),
+            Divider(height: 24),
+            _buildComparisonRow(
+                "Rebounds", lastGame.totals.reb.toDouble(), averages.rpg),
+            Divider(height: 24),
+            _buildComparisonRow(
+                "Assists", lastGame.totals.ast.toDouble(), averages.apg),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildComparisonRow(
+      String statName, double lastGameValue, double seasonAverage) {
+    IconData trendIcon = Icons.horizontal_rule;
+    Color trendColor = Colors.grey;
+
+    if (lastGameValue > seasonAverage) {
+      trendIcon = Icons.arrow_upward;
+      trendColor = Colors.green;
+    } else if (lastGameValue < seasonAverage) {
+      trendIcon = Icons.arrow_downward;
+      trendColor = Colors.red;
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(statName, style: TextStyle(fontSize: 16)),
+        Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text("Last Game",
+                    style: TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(lastGameValue.toStringAsFixed(1),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Icon(trendIcon, color: trendColor),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Average",
+                    style: TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(seasonAverage.toStringAsFixed(1),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ],
+        )
+      ],
+    );
+  }
+
   Widget _buildTeamAveragesContextCard(TeamStatsSummary summary) {
     return Card(
       child: ListTile(
@@ -309,7 +398,6 @@ class _TeamDashboardScreenState extends State<TeamDashboardScreen> {
     );
   }
 
-  // Helper widget for stat items
   Widget _buildStatItem(String value, String label) {
     return Column(
       children: [

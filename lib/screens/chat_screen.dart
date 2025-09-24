@@ -25,6 +25,7 @@ class _ChatScreenState extends State<ChatScreen> {
   User? _currentUser;
   late final AIService _aiService;
   late final FirebaseService _firebaseService;
+  bool _isInitializing = true; // Use a dedicated flag for initial setup
 
   List<String> _currentSuggestions = [];
 
@@ -48,17 +49,21 @@ class _ChatScreenState extends State<ChatScreen> {
 
     String apiKey = '';
     try {
+      // Use the single, correct channel name
       const MethodChannel channel =
           MethodChannel('com.example.hoops_lab_v1/native_secrets');
       apiKey = await channel.invokeMethod('getGeminiApiKey') ?? '';
+      print(
+          "--- Successfully fetched Gemini API Key from native. Length: ${apiKey.length} ---");
     } catch (e) {
-      print("--- Failed to get Gemini API key: $e");
+      print("--- CRITICAL: Failed to get Gemini API key: $e ---");
     }
 
     await _aiService.initialize(apiKey);
 
     if (mounted) {
       setState(() {
+        _isInitializing = false; // Turn off initial loading
         _messages.add(
           ChatMessage(
             text:
@@ -101,19 +106,23 @@ class _ChatScreenState extends State<ChatScreen> {
     final RichAIResponse aiResponse =
         await _aiService.getResponse(text, _firebaseService, _currentUser);
 
-    setState(() {
-      _messages.insert(
-        0,
-        ChatMessage(
-          text: aiResponse.responseText,
-          author: ChatAuthor.ai,
-          dataSource: aiResponse.dataSource,
-        ),
-      );
-      _currentSuggestions = aiResponse.suggestedPrompts;
-      _isLoading = false;
-    });
-    _scrollToTop();
+    // --- THIS IS THE FIX ---
+    // Before calling the final setState, check if the widget is still on the screen.
+    if (mounted) {
+      setState(() {
+        _messages.insert(
+          0,
+          ChatMessage(
+            text: aiResponse.responseText,
+            author: ChatAuthor.ai,
+            dataSource: aiResponse.dataSource,
+          ),
+        );
+        _currentSuggestions = aiResponse.suggestedPrompts;
+        _isLoading = false;
+      });
+      _scrollToTop();
+    }
   }
 
   void _scrollToTop() {

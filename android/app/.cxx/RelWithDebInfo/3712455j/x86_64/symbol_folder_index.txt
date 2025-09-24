@@ -1,0 +1,1 @@
+C:\Users\weiji\AndroidStudioProjects\hoops_lab_v1\build\app\intermediates\cxx\RelWithDebInfo\3712455j\obj\x86_64

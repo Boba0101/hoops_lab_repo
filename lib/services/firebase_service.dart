@@ -311,6 +311,8 @@ class FirebaseService {
   }
 
   Future<TeamStatsSummary> getTeamStatsSummary() async {
+    final stopwatch = Stopwatch()..start();
+
     // 1. Fetch all necessary data in parallel for performance
     final dataFutures = await Future.wait([
       // Get all players on the roster
@@ -324,6 +326,9 @@ class FirebaseService {
           .orderBy('dateTime', descending: true)
           .get(),
     ]);
+
+    print(
+        "--- PERFORMANCE METRIC: Firestore fetch took ${stopwatch.elapsedMilliseconds} ms ---");
 
     final List<User> allPlayers = dataFutures[0] as List<User>;
     final QuerySnapshot gameStatsSnapshot = dataFutures[1] as QuerySnapshot;
@@ -460,6 +465,9 @@ class FirebaseService {
     for (final event in recentGames.reversed) {
       recentScores.add(event.ourScore!.toDouble());
     }
+    stopwatch.stop();
+    print(
+        "--- PERFORMANCE METRIC: Total dashboard data processing took ${stopwatch.elapsedMilliseconds} ms ---");
 
     // --- 6. Return the final, complete data bundle ---
     return TeamStatsSummary(

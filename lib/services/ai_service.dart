@@ -25,6 +25,8 @@ class AIService {
 
   Future<RichAIResponse> getResponse(String userPrompt,
       FirebaseService firebaseService, User? currentUser) async {
+    final stopwatch = Stopwatch()..start();
+
     if (_model == null) {
       return RichAIResponse(
           responseText:
@@ -36,19 +38,34 @@ class AIService {
       final intent = intentJson['intent'];
       final entities = (intentJson['entities'] as Map<String, dynamic>?) ?? {};
 
+      print(
+          "--- PERFORMANCE METRIC: AI Intent Recognition took ${stopwatch.elapsedMilliseconds} ms ---");
+
+      RichAIResponse finalResponse;
       switch (intent) {
         case 'get_player_performance':
-          return _handlePlayerPerformance(
+          finalResponse = await _handlePlayerPerformance(
               entities, firebaseService, currentUser);
+          break;
         case 'get_team_summary':
-          return _handleTeamSummary(entities, firebaseService, currentUser);
+          finalResponse =
+              await _handleTeamSummary(entities, firebaseService, currentUser);
+          break;
         case 'get_stat_leader':
-          return _handleStatLeader(entities, firebaseService, currentUser);
+          finalResponse =
+              await _handleStatLeader(entities, firebaseService, currentUser);
+          break;
         case 'compare_players':
-          return _handlePlayerComparison(
+          finalResponse = await _handlePlayerComparison(
               entities, firebaseService, currentUser);
+          break;
+        // --- ADD THIS NEW CASE ---
+        case 'get_mvp':
+          finalResponse =
+              await _handleMvp(entities, firebaseService, currentUser);
+          break;
         default:
-          return RichAIResponse(
+          finalResponse = RichAIResponse(
             responseText:
                 "I'm not sure how to answer that. Try asking about a player's performance or the team's last game.",
             suggestedPrompts: [
@@ -56,8 +73,15 @@ class AIService {
               "Who was our top scorer?"
             ],
           );
+          break;
       }
+
+      stopwatch.stop();
+      print(
+          "--- PERFORMANCE METRIC: Total AI response pipeline took ${stopwatch.elapsedMilliseconds} ms ---");
+      return finalResponse;
     } catch (e) {
+      stopwatch.stop();
       print("Error in AI Service: $e");
       return RichAIResponse(
           responseText:
@@ -67,17 +91,18 @@ class AIService {
 
   Future<Map<String, dynamic>> _recognizeIntent(String userPrompt) async {
     final prompt = """
-      Analyze the user query and classify its intent and extract entities.
-      Possible intents are: 'get_player_performance', 'get_team_summary', 'get_stat_leader', 'compare_players'.
-      Possible entities are: 'player_name', 'player_name_2', 'stat_category' (e.g., 'points', 'rebounds', 'assists').
-      For 'compare_players', 'player_name' is the first name mentioned and 'player_name_2' is the second.
-      The timeframe is always 'last_game'.
-      Respond ONLY with a valid JSON object.
+    Analyze the user query and classify its intent and extract entities.
+    Possible intents are: 'get_player_performance', 'get_team_summary', 'get_stat_leader', 'compare_players', 'get_mvp'.
+    Possible entities are: 'player_name', 'player_name_2', 'stat_category' (e.g., 'points', 'rebounds', 'assists').
+    For 'compare_players', 'player_name' is the first name mentioned and 'player_name_2' is the second.
+    The timeframe is always 'last_game'.
+    The term 'MVP' or 'most valuable player' corresponds to the 'get_mvp' intent.
+    Respond ONLY with a valid JSON object.
 
-      Query: "$userPrompt"
-      
-      JSON Response:
-    """;
+    Query: "$userPrompt"
+    
+    JSON Response:
+  """;
 
     final response = await _model!.generateContent([Content.text(prompt)]);
     final jsonString =
@@ -158,6 +183,47 @@ class AIService {
     );
   }
 
+  int _calculatePerformanceScore(StatSet stats) {
+    return (stats.pts + stats.reb + stats.ast + stats.stl + stats.blk) -
+        ((stats.fga - stats.fgm) + (stats.fta - stats.ftm) + stats.tov);
+  }
+
+  Future<RichAIResponse> _handleMvp(Map<String, dynamic> entities,
+      FirebaseService firebaseService, User? currentUser) async {
+    final eventId = await _findLastEventIdWithStats(firebaseService);
+    if (eventId == null) {
+      return RichAIResponse(
+          responseText:
+              "I couldn't find any recent games with recorded stats to determine an MVP.");
+    }
+
+    final lastGameStats = await firebaseService.getStatsForEvent(eventId);
+    if (lastGameStats.isEmpty) {
+      return RichAIResponse(
+          responseText:
+              "I found the last game, but there are no player stats recorded for it.");
+    }
+
+    // Calculate the performance score for each player
+    lastGameStats.sort((a, b) => _calculatePerformanceScore(b.totals)
+        .compareTo(_calculatePerformanceScore(a.totals)));
+
+    final mvp = lastGameStats.first;
+    final eventTitle = await firebaseService.getEventTitleById(eventId);
+
+    final responseText =
+        "Based on the performance ratings from the last game, the MVP was ${mvp.playerName}. They finished with a performance score of ${_calculatePerformanceScore(mvp.totals).toStringAsFixed(1)}.";
+
+    return RichAIResponse(
+      responseText: responseText,
+      dataSource: eventTitle,
+      suggestedPrompts: [
+        "How did ${mvp.playerName} perform overall?",
+        "How did the team do in that game?",
+      ],
+    );
+  }
+
   Future<RichAIResponse> _handleTeamSummary(Map<String, dynamic> entities,
       FirebaseService firebaseService, User? currentUser) async {
     final eventId = await _findLastEventIdWithStats(firebaseService);
@@ -220,8 +286,11 @@ class AIService {
           responseText:
               "I found the last game, but there are no player stats recorded for it.");
 
+    final eventTitle = await firebaseService.getEventTitleById(eventId);
+
     late PlayerGameStats leader;
     late num topStat;
+    String leaderType = "leader";
 
     switch (statCategory.toLowerCase()) {
       case 'points':
@@ -240,18 +309,51 @@ class AIService {
             lastGameStats.reduce((a, b) => a.totals.ast > b.totals.ast ? a : b);
         topStat = leader.totals.ast;
         break;
+      case 'steals':
+        leader =
+            lastGameStats.reduce((a, b) => a.totals.stl > b.totals.stl ? a : b);
+        topStat = leader.totals.stl;
+        break;
+      case 'blocks':
+        leader =
+            lastGameStats.reduce((a, b) => a.totals.blk > b.totals.blk ? a : b);
+        topStat = leader.totals.blk;
+        break;
+      case 'turnovers':
+        leader =
+            lastGameStats.reduce((a, b) => a.totals.tov > b.totals.tov ? a : b);
+        topStat = leader.totals.tov;
+        leaderType = "player with the most";
+
+        // --- THIS IS THE FIX ---
+        // If the top "leader" for this negative stat has 0, it's a good thing.
+        if (topStat == 0) {
+          return RichAIResponse(
+            responseText:
+                "That's great news! In the last game, no players recorded any turnovers.",
+            dataSource: eventTitle,
+            suggestedPrompts: [
+              "How did the team do overall?",
+              "Who was the MVP?"
+            ],
+          );
+        }
+        break;
+      // --- END OF FIX ---
+
       default:
         return RichAIResponse(
             responseText:
-                "I can find the leader for points, rebounds, or assists. Please specify one.");
+                "I can find the leader for points, rebounds, assists, steals, blocks, or turnovers. Please specify one.");
     }
 
     return RichAIResponse(
       responseText:
-          "In the last game, the leader in ${statCategory.toLowerCase()} was ${leader.playerName} with $topStat.",
+          "In the last game, the $leaderType in ${statCategory.toLowerCase()} was ${leader.playerName} with $topStat.",
+      dataSource: eventTitle,
       suggestedPrompts: [
         "How did ${leader.playerName} perform overall?",
-        "Compare ${leader.playerName} to the team average."
+        "How did the team do in that game?",
       ],
     );
   }
