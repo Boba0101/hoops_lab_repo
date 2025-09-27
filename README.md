@@ -18,7 +18,7 @@ The app provides a unique, tailored experience for each user role.
 
 | Coach Dashboard | Player Dashboard |
 | :---:           | :---:            |
-| ![Coach Dashboard Demo] ![Animation](https://github.com/user-attachments/assets/45129141-7d77-420c-8934-e3a4b51d03ff) | ![Player Dashboard Demo] ![playerdash](https://github.com/user-attachments/assets/9e5f3123-8be4-4d88-8523-0d3b09bf3280)|
+| ![Coach Dashboard Demo] ![Animation](https://github.com/user-attachments/assets/45129141-7d77-420c-8934-e3a4b51d03ff) |![Player Dashboard Demo] ![playerdash](https://github.com/user-attachments/assets/9e5f3123-8be4-4d88-8523-0d3b09bf3280)|
 
 ### 2. Dual-Mode Stat Tracking
 HoopsLab offers maximum flexibility for data entry to suit any coaching scenario.
