@@ -25,9 +25,9 @@ HoopsLab offers maximum flexibility for data entry to suit any coaching scenario
 
 -   **Live Tally Mode:** An intuitive, real-time interface for game days, featuring a game clock, quarter management, quick-tally buttons, automated "Minutes Played" tracking, and an "Undo" function.
 -   **Manual Entry Mode:** A comprehensive post-game system that allows a coach to add or edit a full, detailed box score for any past event from the match history.
-<img alt="Screenshot_20250920-151911" src="https://github.com/user-attachments/assets/59f9e757-c84c-4461-8ae0-164a76415b53" />
+<img width="455" height="1011" alt="Screenshot_20250920-151911" src="https://github.com/user-attachments/assets/59f9e757-c84c-4461-8ae0-164a76415b53" />
 
-<img alt="Screenshot_20250920-151923" src="https://github.com/user-attachments/assets/d2a93d88-16f5-4ac3-8f9a-0642f6f7b958" />
+<img width="455" height="1011" alt="Screenshot_20250920-151923" src="https://github.com/user-attachments/assets/d2a93d88-16f5-4ac3-8f9a-0642f6f7b958" />
 
 
 ### 3. AI Performance Assistant
