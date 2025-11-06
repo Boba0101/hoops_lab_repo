@@ -24,10 +24,14 @@ The app provides a unique, tailored experience for each user role.
 HoopsLab offers maximum flexibility for data entry to suit any coaching scenario.
 
 -   **Live Tally Mode:** An intuitive, real-time interface for game days, featuring a game clock, quarter management, quick-tally buttons, automated "Minutes Played" tracking, and an "Undo" function.
+|<img width="455" height="1011" alt="Screenshot_20250920-151911" src="https://github.com/user-attachments/assets/59f9e757-c84c-4461-8ae0-164a76415b53" />
+|
+<img width="455" height="1011" alt="Screenshot_20250920-151923" src="https://github.com/user-attachments/assets/d2a93d88-16f5-4ac3-8f9a-0642f6f7b958" />|
 -   **Manual Entry Mode:** A comprehensive post-game system that allows a coach to add or edit a full, detailed box score for any past event from the match history.
-<img width="455" height="1011" alt="Screenshot_20250920-151911" src="https://github.com/user-attachments/assets/59f9e757-c84c-4461-8ae0-164a76415b53" />
+|<img width="455" height="1011" alt="Screenshot_20250920-172006" src="https://github.com/user-attachments/assets/c9ecce91-67f3-4f84-bcc0-1722f00f495b" />
+|
+<img width="455" height="1011" alt="Screenshot_20250920-172606" src="https://github.com/user-attachments/assets/21ed3857-88ab-44ec-a110-2a541b5eb64c" />|
 
-<img width="455" height="1011" alt="Screenshot_20250920-151923" src="https://github.com/user-attachments/assets/d2a93d88-16f5-4ac3-8f9a-0642f6f7b958" />
 
 
 ### 3. AI Performance Assistant
@@ -37,12 +41,14 @@ The integrated chatbot transforms raw data into knowledge.
 -   **Multi-Intent Understanding:** The chatbot can understand and answer a variety of questions, including single-player performance, team summaries, stat leaders, and head-to-head player comparisons.
 -   **Dynamic Suggestions:** After each response, the AI provides tappable, context-aware follow-up questions to guide the analytical conversation.
 
-<img width="1080" height="2400" alt="Screenshot_20250920-160204" src="https://github.com/user-attachments/assets/b28730cc-c330-405a-a2e8-1f4efb8e31d4" />
+<img width="455" height="1011" alt="Screenshot_20250920-160204" src="https://github.com/user-attachments/assets/b28730cc-c330-405a-a2e8-1f4efb8e31d4" />
 
 
 ### 4. Comprehensive Schedule & History
 -   **Event Management:** Coaches can create, edit, and delete team events (Matches or Trainings), selecting participants and locations with an interactive map.
 -   **Game Summaries:** All users can view the match history, which includes color-coded win/loss indicators and detailed box scores for completed games.
+<img width="455" height="1011" alt="Screenshot_20250920-151651" src="https://github.com/user-attachments/assets/86a11620-d447-4d69-9268-a223e32dc7f2" />
+<img width="455" height="1011" alt="Screenshot_20250920-171854" src="https://github.com/user-attachments/assets/e260012d-bef0-4283-8150-7224a4bbf5a2" />
 
 ---
 
